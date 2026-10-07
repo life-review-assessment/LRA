@@ -3,9 +3,11 @@ import { buildAnalysisPrompt } from './analysis-handoff.js';
 const stateKey='lra.state.1.3';
 const historyKey='lra.history.1.3';
 const $=s=>document.querySelector(s);
+const REQUIRED=['currentStructure','bottleneck','chainLoop','hypotheses','evidence','counterUncertainty','functionalParts','protect','resources','leverage','interventions','topPriority','confidence','additionalObservation'];
 let rows=loadRows();
 let selected=null;
 
+function validAnalysis(a){return a&&typeof a==='object'&&REQUIRED.every(k=>Object.prototype.hasOwnProperty.call(a,k))&&['HIGH','MEDIUM','LOW','INSUFFICIENT'].includes(a.confidence);}
 function loadRows(){
   let history=[];try{history=JSON.parse(localStorage.getItem(historyKey)||'[]');}catch{}
   let current=null;try{current=JSON.parse(localStorage.getItem(stateKey)||'null');}catch{}
@@ -37,17 +39,18 @@ function download(name,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{ty
 function saveResult(){
   const r=current();if(!r)return;
   let parsed;try{parsed=JSON.parse($('#payload').value);}catch{status('JSON形式を確認してください。',true);return;}
+  if(!validAnalysis(parsed)){status('LRA結果の必須14項目または確信度の形式が不足しています。',true);return;}
   r.analysis=parsed;r.status='分析結果確定';r.savedAt=new Date().toISOString();persistRows();selectRow(r.key);status('レビュー済み分析結果を保存しました。');
 }
 function exportReviewedResult(){
   const r=current();if(!r){status('記録を選択してください。',true);return;}
-  if(!r.analysis){status('分析結果を保存してから書き出してください。',true);return;}
+  if(!validAnalysis(r.analysis)){status('完全な分析結果を保存してから書き出してください。',true);return;}
   const pkg={kind:'LRA_REVIEWED_RESULT',schemaVersion:'LRA-REVIEWED-RESULT-1.0',userId:r.userId||null,lraId:r.lraId,analysisCount:Number(r.analysisCount||1),outputId:r.outputId||null,planCode:r.planCode||null,status:'分析結果確定',reviewedAt:new Date().toISOString(),analysis:r.analysis};
   download(`${r.lraId}_A${r.analysisCount||1}_result.json`,pkg);status('利用者へ返す分析結果を書き出しました。');
 }
 function setRecordStatus(value){const r=current();if(!r)return;r.status=value;r.savedAt=new Date().toISOString();persistRows();selectRow(r.key);status(`状態を「${value}」に更新しました。`);}
 function importRows(file){
-  const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(String(reader.result||''));const list=Array.isArray(incoming)?incoming:[incoming];for(const item of list){const packet=item.analysisPacket||item.packet||((item.schemaVersion&&item.lraId&&item.answers)?item:null);if(!packet&&!item.lraId)continue;const lraId=item.lraId||packet.lraId;const analysisCount=Number(item.analysisCount||packet.analysisCount||1);const key=`${lraId}:${analysisCount}`;const next={key,userId:item.userId||packet?.userId||null,lraId,analysisCount,outputId:item.outputId||packet?.outputId||null,planCode:item.planCode||packet?.planCode||null,status:item.status||'分析待ち',savedAt:item.savedAt||packet?.observedAt||new Date().toISOString(),analysisPacket:packet||item.analysisPacket||null,analysis:item.analysis||null};const i=rows.findIndex(x=>x.key===key);if(i>=0)rows[i]={...rows[i],...next};else rows.push(next);}rows.sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||'')));persistRows();renderList();status('記録を読み込みました。');}catch{status('読み込みファイルを確認してください。',true);}};reader.readAsText(file);
+  const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(String(reader.result||''));const list=Array.isArray(incoming)?incoming:[incoming];for(const item of list){const packet=item.analysisPacket||item.packet||((item.schemaVersion&&item.lraId&&item.answers)?item:null);if(!packet&&!item.lraId)continue;const lraId=item.lraId||packet.lraId;const analysisCount=Number(item.analysisCount||packet.analysisCount||1);const key=`${lraId}:${analysisCount}`;const next={key,userId:item.userId||packet?.userId||null,lraId,analysisCount,outputId:item.outputId||packet?.outputId||null,planCode:item.planCode||packet?.planCode||null,status:item.status||'分析待ち',savedAt:item.savedAt||packet?.observedAt||new Date().toISOString(),analysisPacket:packet||item.analysisPacket||null,analysis:validAnalysis(item.analysis)?item.analysis:null};const i=rows.findIndex(x=>x.key===key);if(i>=0)rows[i]={...rows[i],...next};else rows.push(next);}rows.sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||'')));persistRows();renderList();status('記録を読み込みました。');}catch{status('読み込みファイルを確認してください。',true);}};reader.readAsText(file);
 }
 
 $('#copyPromptBtn').onclick=()=>{const r=current();if(!r?.analysisPacket){status('分析パケットがありません。',true);return;}copyText(buildAnalysisPrompt(r.analysisPacket),'ChatGPT分析依頼');};
