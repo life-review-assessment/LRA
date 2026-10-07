@@ -1,0 +1,9 @@
+{
+  "name": "LRA - Life Review Assessment",
+  "short_name": "LRA",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f2ed",
+  "theme_color": "#f4f2ed",
+  "lang": "ja"
+}
