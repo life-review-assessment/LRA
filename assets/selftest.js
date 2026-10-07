@@ -39,10 +39,10 @@ try{
   add('Legacy report generations retained',LEGACY_REPORT_ASSETS.fivePart.length===5&&Object.keys(LEGACY_REPORT_ASSETS.lateP1P4).length===4,'5部 + P1-P4');
 
   const [index,main,engine,manifest,sw,account,resultHandoff]=await Promise.all([
-    get('../index.html'),get('./main-canonical.js'),get('./analysis-engine.js'),get('../manifest.json'),get('../sw.js'),get('./account-gate.js'),get('./result-handoff.js')
+    get('./index.html'),get('./assets/main-canonical.js'),get('./assets/analysis-engine.js'),get('./manifest.json'),get('./sw.js'),get('./assets/account-gate.js'),get('./assets/result-handoff.js')
   ]);
   add('Public UI has no admin link',!index.includes('admin.html'),'index.html');
-  add('Public deployment has no admin route',!(await exists('../admin.html')),'admin.html must not be public');
+  add('Public deployment has no admin route',!(await exists('./admin.html')),'admin.html must not be public');
   add('Approved customer runtime active',index.includes('./assets/main-canonical.js')&&!index.includes('src="./assets/main.js"'),'main-canonical.js');
   add('Local user login active',index.includes('./assets/account-gate.js')&&account.includes('provisionalUserId'),'persistent first-login user ID');
   add('Submission handoff active',index.includes('./assets/handoff-ui.js')&&index.includes('shareSubmissionBtn'),'handoff-ui.js');
@@ -58,12 +58,12 @@ try{
   const forbidden=[/supabase/i,/netlify/i,/price\s*[:=]\s*1500\b/,/price\s*[:=]\s*5500\b/,/price\s*[:=]\s*10000\b/,/price\s*[:=]\s*15000\b/,/price\s*[:=]\s*30000\b/];
   const scan=index+main+account+resultHandoff;
   add('No prohibited backend or stale-price remnants in public runtime',forbidden.every(r=>!r.test(scan)),'public runtime scan');
-  add('Legal pages exist',await exists('../terms.html')&&await exists('../privacy.html')&&await exists('../legal.html'),'terms/privacy/legal');
-  add('Provided logo asset exists',await exists('../lra-brand.png'),'lra-brand.png');
+  add('Legal pages exist',await exists('./terms.html')&&await exists('./privacy.html')&&await exists('./legal.html'),'terms/privacy/legal');
+  add('Provided logo asset exists',await exists('./lra-brand.png'),'lra-brand.png');
 
   add('Owner-email server authentication',false,'STATIC_ONLY: server-side identity verification requires an explicitly authorized authentication backend.');
   add('Central automatic multi-user storage',false,'STATIC_ONLY: receiving/storing records from different customer devices requires an explicitly authorized backend.');
-  add('Paid-plan payment execution',false,'PAYMENT_NOT_CONNECTED: an external payment provider must be explicitly authorized.');
+  add('Paid-plan payment execution',false,'PAYMENT_NOT_CONNECTED: a live payment provider connection is required.');
 }catch(e){add('Self-test execution',false,e.message||String(e));}
 
 const rows=document.getElementById('rows');
