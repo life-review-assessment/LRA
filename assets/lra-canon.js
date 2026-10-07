@@ -1,4 +1,6 @@
 import { LEGACY_CANON, LEGACY_CANON_VERSION } from './legacy-canon.js';
+import { LEGACY_14_SHEETS, LEGACY_SHEET_SCHEMA_VERSION } from './legacy-sheet-schema.js';
+import { LEGACY_REPORT_ASSETS } from './legacy-report-assets.js';
 
 export const LRA_CANON=Object.freeze({
   purpose:'意思決定支援。診断・採点・性格分類ではない。',
@@ -13,6 +15,9 @@ export const LRA_CANON=Object.freeze({
   outputOrder:Object.freeze(['現在の生活構造','最大ボトルネック','CHAIN/LOOP','主要仮説','根拠','反証・不確実性','機能している部分','保護対象','資源','レバレッジポイント','介入候補','最優先候補','確信度','必要時追加観測']),
   legacy:LEGACY_CANON,
   legacyCanonVersion:LEGACY_CANON_VERSION,
+  legacySheetSchema:LEGACY_14_SHEETS,
+  legacySheetSchemaVersion:LEGACY_SHEET_SCHEMA_VERSION,
+  legacyReports:LEGACY_REPORT_ASSETS,
   rules:Object.freeze({
     factFirst:true,
     singleAnswerCannotProveCause:true,
@@ -24,7 +29,7 @@ export const LRA_CANON=Object.freeze({
     chain:'根拠ある一方向関係がある場合のみCHAINとして扱う。',
     loop:'循環維持の証拠がある場合のみLOOPとして扱う。',
     oldFiveAxes:'行動／判断／環境／感情／回復は内部整理軸。主結果を単純点数化しない。',
-    legacyAssets:'旧40問・旧25問・TYPE8+T99・TAG22・STATE/WARNING役割・PT01〜06名称・旧構造翻訳・旧スコア/比較・専門家優先度は履歴/内部互換資産として保持し、未凍結条件は推測実装しない。',
+    legacyAssets:'旧40問・旧25問・TYPE8+T99・TAG22・STATE/WARNING役割・PT01〜06名称・旧構造翻訳・旧スコア/比較・専門家優先度・旧14シート全列・旧5部・P1〜P4を履歴/内部互換資産として保持し、未凍結条件は推測実装しない。',
     aiFinalDecision:false,
     localFinalInference:false
   })
@@ -38,6 +43,7 @@ export function buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,
     packetVersion:meta.packetVersion||null,
     questionDbVersion:meta.questionDbVersion||null,
     legacyCanonVersion:LEGACY_CANON_VERSION,
+    legacySheetSchemaVersion:LEGACY_SHEET_SCHEMA_VERSION,
     userId:state.userId||null,
     lraId:state.lraId,
     analysisCount:Number(state.analysisCount||1),
@@ -59,7 +65,7 @@ export function buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,
     hypothesisStates:[...LRA_CANON.hypothesisState],
     interventionComparison:[...LRA_CANON.interventionCompare],
     outputOrder:[...LRA_CANON.outputOrder],
-    legacyCompatibility:LEGACY_CANON,
+    legacyCompatibility:{canon:LEGACY_CANON,sheets:LEGACY_14_SHEETS,reports:LEGACY_REPORT_ASSETS},
     constraints:{diagnosis:false,simpleScoring:false,singleCauseAssertion:false,aiFinalDecision:false,localFinalInference:false,unfrozenLegacyRulesMayNotBeInvented:true}
   };
 }
