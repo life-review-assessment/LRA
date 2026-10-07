@@ -1,3 +1,5 @@
+import { buildAnalysisPrompt } from './analysis-handoff.js';
+
 const stateKey='lra.state.1.3';
 const historyKey='lra.history.1.3';
 const $=s=>document.querySelector(s);
@@ -29,8 +31,9 @@ function selectRow(key){
   renderList();status('');
 }
 function current(){return rows.find(x=>x.key===selected)||null;}
-async function copy(value,label){try{await navigator.clipboard.writeText(JSON.stringify(value||{},null,2));status(`${label}をコピーしました。`);}catch{status('コピーできませんでした。',true);}}
-function download(name,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);}
+async function copyText(value,label){try{await navigator.clipboard.writeText(String(value??''));status(`${label}をコピーしました。`);}catch{status('コピーできませんでした。',true);}}
+async function copyJson(value,label){return copyText(JSON.stringify(value||{},null,2),label);}
+function download(name,obj){const blob=new Blob([JSON.stringify(obj,null,2)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
 function saveResult(){
   const r=current();if(!r)return;
   let parsed;try{parsed=JSON.parse($('#payload').value);}catch{status('JSON形式を確認してください。',true);return;}
@@ -41,8 +44,9 @@ function importRows(file){
   const reader=new FileReader();reader.onload=()=>{try{const incoming=JSON.parse(String(reader.result||''));const list=Array.isArray(incoming)?incoming:[incoming];for(const item of list){const packet=item.analysisPacket||item.packet||((item.schemaVersion&&item.lraId)?item:null);if(!packet&&!item.lraId)continue;const lraId=item.lraId||packet.lraId;const analysisCount=Number(item.analysisCount||packet.analysisCount||1);const key=`${lraId}:${analysisCount}`;const next={key,userId:item.userId||packet?.userId||null,lraId,analysisCount,outputId:item.outputId||packet?.outputId||null,planCode:item.planCode||packet?.planCode||null,status:item.status||'分析待ち',savedAt:item.savedAt||packet?.observedAt||new Date().toISOString(),analysisPacket:packet||item.analysisPacket||null,analysis:item.analysis||null};const i=rows.findIndex(x=>x.key===key);if(i>=0)rows[i]={...rows[i],...next};else rows.push(next);}rows.sort((a,b)=>String(b.savedAt||'').localeCompare(String(a.savedAt||'')));persistRows();renderList();status('記録を読み込みました。');}catch{status('読み込みファイルを確認してください。',true);}};reader.readAsText(file);
 }
 
-$('#copyPacketBtn').onclick=()=>{const r=current();if(r)copy(r.analysisPacket,'分析パケット');};
-$('#copyResultBtn').onclick=()=>{const r=current();if(r)copy(r.analysis,'分析結果');};
+$('#copyPromptBtn').onclick=()=>{const r=current();if(!r?.analysisPacket){status('分析パケットがありません。',true);return;}copyText(buildAnalysisPrompt(r.analysisPacket),'ChatGPT分析依頼');};
+$('#copyPacketBtn').onclick=()=>{const r=current();if(r)copyJson(r.analysisPacket,'分析パケット');};
+$('#copyResultBtn').onclick=()=>{const r=current();if(r)copyJson(r.analysis,'分析結果');};
 $('#exportAllBtn').onclick=()=>download(`LRA_ADMIN_EXPORT_${new Date().toISOString().slice(0,10)}.json`,rows);
 $('#importFile').onchange=e=>{const f=e.target.files?.[0];if(f)importRows(f);e.target.value='';};
 $('#saveResultBtn').onclick=saveResult;
