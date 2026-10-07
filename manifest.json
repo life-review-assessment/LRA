@@ -2,8 +2,17 @@
   "name": "LRA - Life Review Assessment",
   "short_name": "LRA",
   "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#f4f2ed",
   "theme_color": "#f4f2ed",
-  "lang": "ja"
+  "lang": "ja",
+  "icons": [
+    {
+      "src": "./lra-brand.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
 }
