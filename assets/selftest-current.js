@@ -1,0 +1,36 @@
+import{PLANS,OPTIONS,CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,QUESTION_DB_VERSION,PACKET_VERSION}from'./questions.js';
+import{SHORT_TERM_OBSERVATION}from'./short-term.js';
+import{LRA_CANON}from'./lra-canon.js';
+import{LEGACY_CANON}from'./legacy-canon.js';
+import{LEGACY_14_SHEETS}from'./legacy-sheet-schema.js';
+import{LEGACY_REPORT_ASSETS}from'./legacy-report-assets.js';
+const T=[],$=s=>document.querySelector(s),add=(n,o,d='')=>T.push({n,o:!!o,d});
+const get=async p=>{const r=await fetch(p,{cache:'no-store'});if(!r.ok)throw Error(`${p}:${r.status}`);return r.text()},exists=async p=>{try{return(await fetch(p,{cache:'no-store'})).ok}catch{return false}};
+try{
+add('Question/packet versions',QUESTION_DB_VERSION==='lra-question-db-1.1.0'&&PACKET_VERSION==='LRA-PACKET-1.1',`${QUESTION_DB_VERSION} / ${PACKET_VERSION}`);
+add('Current question sets',CORE.length===20&&ADAPTIVE.length===30&&EVENT_TRACE.length===8&&REFLECTION.length===8&&SHORT_TERM_OBSERVATION.length===4,`20 / 30 / 8 / 8 / 4`);
+const s=CORE[0]?.options||[];add('CORE values + Japanese',JSON.stringify(s.map(x=>x.value))===JSON.stringify(['0','1','2','3','4','U','S'])&&s[0]?.label==='一度もなかった'&&s[4]?.label==='ほぼ毎日あった',s.map(x=>`${x.value}:${x.label}`).join(' / '));
+add('Current pricing',JSON.stringify(PLANS.map(x=>x.price))===JSON.stringify([0,980,2980,5980,9800]),PLANS.map(x=>`${x.name}:${x.price}`).join(' / '));
+add('Current options',JSON.stringify(OPTIONS.map(x=>x.price))===JSON.stringify(['1,980〜2,980円','2,980〜3,980円','1,980〜3,980円','980〜1,980円']),OPTIONS.map(x=>`${x.name}:${x.price}`).join(' / '));
+add('Current structural inference canon',LRA_CANON.analysis.length===17&&LRA_CANON.outputOrder.length===14&&['CHAIN','LOOP','MULTIPLE HYPOTHESES','COUNTEREVIDENCE','CONTRADICTIONS','EXCEPTIONS','TIMELINE','INTERACTIONS','CONFIDENCE','PERSONAL BASELINE','RE-ANALYSIS'].every(x=>LRA_CANON.analysis.includes(x)),LRA_CANON.outputOrder.join(' → '));
+add('Legacy axes/TYPE/TAG/PT',LEGACY_CANON.axes.length===5&&LEGACY_CANON.types.length===9&&LEGACY_CANON.tagCategories.length===22&&LEGACY_CANON.patterns.length===6,'5 axes / TYPE8+T99 / TAG22 / PT01-06');
+add('Legacy questions',LEGACY_CANON.oldQuestion40.items.length===40&&LEGACY_CANON.oldQuestion25.items.length===25,'40 + 25');
+add('Legacy generation difference',LEGACY_CANON.reflectionGenerations.current8==='今できること'&&LEGACY_CANON.reflectionGenerations.legacyJune8==='今後手に入れたいもの',LEGACY_CANON.reflectionGenerations.rule);
+add('Legacy 14-sheet compatibility',Object.keys(LEGACY_14_SHEETS.sheets).length===14&&LEGACY_14_SHEETS.common.length===7&&LEGACY_14_SHEETS.stateCodes.length===8&&LEGACY_14_SHEETS.reviewCodes.length===3,'14 sheets / A:G / ST / R codes');
+add('Legacy report generations',LEGACY_REPORT_ASSETS.fivePart.length===5&&Object.keys(LEGACY_REPORT_ASSETS.lateP1P4).length===4,'5 parts / P1-P4');
+const[index,main,engine,manifest,sw,account,result]=await Promise.all([get('../index.html'),get('./main-canonical.js'),get('./analysis-engine.js'),get('../manifest.json'),get('../sw.js'),get('./account-gate.js'),get('./result-handoff.js')]);
+add('Public admin not exposed',!index.includes('admin.html')&&!(await exists('../admin.html')),'no public admin route');
+add('Canonical runtime only',index.includes('./assets/main-canonical.js')&&!index.includes('src="./assets/main.js"')&&engine.includes('LOCAL_INFERENCE_DISABLED_BY_LRA_CANON'),'observation device + external inference');
+add('Persistent local login',index.includes('./assets/account-gate.js')&&account.includes('PBKDF2-SHA256')&&account.includes('provisionalUserId'),'PBKDF2 + stable USER-ID');
+add('Submission/result handoff',index.includes('shareSubmissionBtn')&&index.includes('resultImportBtn')&&result.includes('ANALYSIS_COUNT_MISMATCH')&&result.includes('OUTPUT_ID_MISMATCH'),'user/LRA/analysis/output validation');
+add('Short-term reanalysis',index.includes('shortTermBtn')&&main.includes('SHORT_TERM_OBSERVATION')&&main.includes('previousAnalyses'),'observation + baseline history');
+add('Adaptive branching exact',main.includes("['3','4','U','S'].includes")&&main.includes("q.domain==='CROSS'?0.35:0")&&main.includes("q.type==='PROTECT'?0.15:0")&&main.includes("q.type==='COMPARE'?0.10:0")&&main.includes('out.length>=14')&&main.includes("counts[d]||0)>=4")&&main.includes("filter(q=>q.domain==='CROSS').slice(0,3)"),'trigger/weights/caps');
+add('Resume + new output ID',main.includes("if(state.stage&&state.stage!=='INTRO')renderState()")&&main.includes("state.outputId=`OUT-")&&main.includes('state.outputId=null;state.analysisPacket=null;state.analysis=null'),'resume/reanalysis');
+add('PWA',index.includes('./assets/pwa.js')&&manifest.includes('"display": "standalone"')&&sw.includes("const CACHE='lra-static-v1.3.0'"),'standalone + service worker');
+const bad=[/supabase/i,/netlify/i,/price\s*[:=]\s*1500\b/,/price\s*[:=]\s*5500\b/,/price\s*[:=]\s*10000\b/,/price\s*[:=]\s*15000\b/,/price\s*[:=]\s*30000\b/];add('No prohibited backend/stale prices in public runtime',bad.every(r=>!r.test(index+main+account+result)),'public runtime scan');
+add('Legal + provided logo',await exists('../terms.html')&&await exists('../privacy.html')&&await exists('../legal.html')&&await exists('../lra-brand.png'),'terms/privacy/legal/logo');
+add('Owner-email server authentication',false,'Requires an explicitly authorized authentication backend.');
+add('Central automatic multi-user storage',false,'Requires an explicitly authorized shared backend.');
+add('Paid-plan payment execution',false,'Requires an explicitly authorized payment provider.');
+}catch(e){add('Self-test execution',false,e.message||String(e))}
+$('#rows').innerHTML=T.map(t=>`<div class="row"><div class="${t.o?'pass':'fail'}">${t.o?'PASS':'BLOCK'}</div><div><b>${t.n}</b>${t.d?`<div style="margin-top:5px;color:#777268;font-size:12px;line-height:1.6">${String(t.d).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m]))}</div>`:''}</div></div>`).join('');const p=T.filter(x=>x.o).length,b=T.length-p;$('#summary').textContent=`${p} PASS / ${b} BLOCK — ${b?'未完了項目あり':'100%'}`;
