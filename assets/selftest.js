@@ -49,7 +49,7 @@ try{
   add('Reviewed result return active',index.includes('./assets/result-handoff.js')&&index.includes('resultImportBtn'),'result-handoff.js');
   add('Result belongs to exact analysis round',resultHandoff.includes('ANALYSIS_COUNT_MISMATCH')&&resultHandoff.includes('OUTPUT_ID_MISMATCH'),'user/LRA/analysis/output validation');
   add('Short-term reanalysis UI active',index.includes('./assets/short-term-ui.js')&&index.includes('shortTermBtn'),'short-term-ui.js');
-  add('PWA registration active',index.includes('./assets/pwa.js')&&manifest.includes('"display": "standalone"')&&sw.includes("const CACHE='lra-static-v1.2.0'"),'manifest + service worker');
+  add('PWA registration active',index.includes('./assets/pwa.js')&&manifest.includes('"display": "standalone"')&&sw.includes("const CACHE='lra-static-v1.3.0'"),'manifest + service worker');
   add('Adaptive trigger exact',main.includes("['3','4','U','S'].includes")&&main.includes("q.domain==='CROSS'?0.35:0")&&main.includes("q.type==='PROTECT'?0.15:0")&&main.includes("q.type==='COMPARE'?0.10:0"),'3/4/U/S + 0.35/0.15/0.10');
   add('Adaptive caps exact',main.includes('out.length>=14')&&main.includes("counts[d]||0)>=4")&&main.includes("filter(q=>q.domain==='CROSS').slice(0,3)"),'max14 / per-domain4 / CROSS3');
   add('Resume after reload',main.includes("if(state.stage&&state.stage!=='INTRO')renderState()"),'renderState resume');
