@@ -2,6 +2,8 @@ import {PLANS,OPTIONS,CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,QUESTION_DB_VERSION,P
 import {SHORT_TERM_OBSERVATION} from './short-term.js';
 import {LRA_CANON} from './lra-canon.js';
 import {LEGACY_CANON} from './legacy-canon.js';
+import {LEGACY_14_SHEETS} from './legacy-sheet-schema.js';
+import {LEGACY_REPORT_ASSETS} from './legacy-report-assets.js';
 
 const tests=[];
 const add=(name,ok,detail='')=>tests.push({name,ok:Boolean(ok),detail});
@@ -31,6 +33,10 @@ try{
   add('Legacy frozen 25 questions retained',LEGACY_CANON.oldQuestion25.items.length===25&&LEGACY_CANON.oldQuestion25.scale.length===5,String(LEGACY_CANON.oldQuestion25.items.length));
   add('Reflection generation difference retained',LEGACY_CANON.reflectionGenerations.current8==='今できること'&&LEGACY_CANON.reflectionGenerations.legacyJune8==='今後手に入れたいもの',LEGACY_CANON.reflectionGenerations.rule);
   add('Legacy specialist/safety retained',LEGACY_CANON.specialistLegacy.bands.length===4&&LEGACY_CANON.specialistLegacy.currentSafetyRule.includes('単語1つで機械確定せず'),'legacy priority + current context rule');
+  add('Legacy 14-sheet names retained',Object.keys(LEGACY_14_SHEETS.sheets).length===14,Object.keys(LEGACY_14_SHEETS.sheets).join(' / '));
+  add('Legacy 14-sheet common columns retained',LEGACY_14_SHEETS.common.length===7,LEGACY_14_SHEETS.common.join(' / '));
+  add('Legacy status and review codes retained',LEGACY_14_SHEETS.stateCodes.length===8&&LEGACY_14_SHEETS.reviewCodes.length===3,'ST01-ST07/ST99 + R01-R03');
+  add('Legacy report generations retained',LEGACY_REPORT_ASSETS.fivePart.length===5&&Object.keys(LEGACY_REPORT_ASSETS.lateP1P4).length===4,'5部 + P1-P4');
 
   const [index,main,engine,manifest,sw,account,resultHandoff]=await Promise.all([
     get('../index.html'),get('./main-canonical.js'),get('./analysis-engine.js'),get('../manifest.json'),get('../sw.js'),get('./account-gate.js'),get('./result-handoff.js')
@@ -43,7 +49,7 @@ try{
   add('Reviewed result return active',index.includes('./assets/result-handoff.js')&&index.includes('resultImportBtn'),'result-handoff.js');
   add('Result belongs to exact analysis round',resultHandoff.includes('ANALYSIS_COUNT_MISMATCH')&&resultHandoff.includes('OUTPUT_ID_MISMATCH'),'user/LRA/analysis/output validation');
   add('Short-term reanalysis UI active',index.includes('./assets/short-term-ui.js')&&index.includes('shortTermBtn'),'short-term-ui.js');
-  add('PWA registration active',index.includes('./assets/pwa.js')&&manifest.includes('"display": "standalone"')&&sw.includes("const CACHE='lra-static-v1.1.0'"),'manifest + service worker');
+  add('PWA registration active',index.includes('./assets/pwa.js')&&manifest.includes('"display": "standalone"')&&sw.includes("const CACHE='lra-static-v1.2.0'"),'manifest + service worker');
   add('Adaptive trigger exact',main.includes("['3','4','U','S'].includes")&&main.includes("q.domain==='CROSS'?0.35:0")&&main.includes("q.type==='PROTECT'?0.15:0")&&main.includes("q.type==='COMPARE'?0.10:0"),'3/4/U/S + 0.35/0.15/0.10');
   add('Adaptive caps exact',main.includes('out.length>=14')&&main.includes("counts[d]||0)>=4")&&main.includes("filter(q=>q.domain==='CROSS').slice(0,3)"),'max14 / per-domain4 / CROSS3');
   add('Resume after reload',main.includes("if(state.stage&&state.stage!=='INTRO')renderState()"),'renderState resume');
