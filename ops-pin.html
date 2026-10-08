@@ -30,7 +30,7 @@ body{margin:0;background:#f4f2ed;color:#111;font-family:-apple-system,BlinkMacSy
 <section id="detail" class="hide">
 <button id="back" class="btn sub">← 一覧へ</button>
 <h2 id="did"></h2><div id="dmeta" class="meta"></div>
-<div class="status"><select id="st" class="inp"><option>受付</option><option>回答中</option><option>分析待ち</option><option>分析中</option><option>レビュー待ち</option><option>完了</option><option>納品済み</option></select><button id="save" class="btn">保存</button></div>
+<div class="status"><select id="st" class="inp"><option>受付</option><option>回答中</option><option>分析待ち</option><option>再分析待ち</option><option>分析中</option><option>レビュー待ち</option><option>完了</option><option>納品済み</option></select><button id="save" class="btn">保存</button></div>
 
 <div class="analysis-tools">
 <h3>GPT分析</h3>
@@ -42,17 +42,25 @@ body{margin:0;background:#f4f2ed;color:#111;font-family:-apple-system,BlinkMacSy
 <div id="answers"></div>
 
 <div class="analysis-tools">
-<h3>分析結果</h3>
+<h3>内部分析結果</h3>
 <p>ChatGPTから返った「LRA ANALYSIS RESULT」全文をそのまま貼り付けて保存します。</p>
 <textarea id="analysisResult" class="text" placeholder="LRA ANALYSIS RESULT を全文貼り付け"></textarea>
 <button id="saveAnalysisResult" class="btn">分析結果を保存</button>
 <div id="resultMsg" class="copy-note"></div>
 </div>
+
+<div class="analysis-tools">
+<h3>顧客向けレポート</h3>
+<p>プラン別プロンプトで作成した顧客向けレポート全文を貼り付けます。「保存して公開」を押すと、利用者のマイページから閲覧できる状態になります。</p>
+<textarea id="clientReport" class="text" placeholder="LRA FREE / LIGHT / CLIENT / DEEP / CONTINUOUS REPORT を全文貼り付け"></textarea>
+<button id="saveClientReport" class="btn">保存して公開</button>
+<div id="clientReportMsg" class="copy-note"></div>
+</div>
 </section>
 </main>
 
 <script type="module">
-import {copyGptAnalysisPackage} from './assets/lra-analysis-package.js';
+import {copyGptAnalysisPackage} from './assets/lra-analysis-package.js?v=20261008-2150';
 
 const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-admin-api';
 let AUTH='',ROWS=[],CUR=null,SETUP=(location.hash.match(/setup=([^&]+)/)||[])[1]||'';
@@ -68,14 +76,15 @@ $('#go').onclick=async()=>{try{const j=await api({action:'login_pin',pin:$('#pin
 $('#pin').onkeydown=e=>{if(e.key==='Enter')$('#go').click()};
 async function dash(){page('dash');await load()}
 async function load(){try{ROWS=(await api({action:'list'},1)).records||[];render()}catch(e){AUTH='';page('auth');box('login');msg('認証が切れました。PINを入力してください。',1)}}
-function render(){const q=$('#search').value.trim().toLowerCase(),x=ROWS.filter(r=>!q||String(r.lra_id).toLowerCase().includes(q)||String(r.user_id||'').toLowerCase().includes(q));$('#count').textContent='受付 '+ROWS.length+'件 / 分析待ち '+ROWS.filter(r=>['分析待ち','分析中','レビュー待ち'].includes(r.status)).length+'件';$('#list').innerHTML=x.map(r=>'<button class="item" data-id="'+esc(r.lra_id)+'"><b>'+esc(r.lra_id)+'</b><div class="meta">'+esc(r.status)+'<br>利用者ID：'+esc(r.user_id||'—')+'<br>'+esc(r.plan_name||r.plan_code||'')+' / 分析'+esc(r.analysis_count||1)+'回目<br>'+new Date(r.updated_at).toLocaleString('ja-JP')+'</div></button>').join('')}
+function render(){const q=$('#search').value.trim().toLowerCase(),x=ROWS.filter(r=>!q||String(r.lra_id).toLowerCase().includes(q)||String(r.user_id||'').toLowerCase().includes(q));$('#count').textContent='受付 '+ROWS.length+'件 / 分析待ち '+ROWS.filter(r=>['分析待ち','再分析待ち','分析中','レビュー待ち'].includes(r.status)).length+'件';$('#list').innerHTML=x.map(r=>'<button class="item" data-id="'+esc(r.lra_id)+'"><b>'+esc(r.lra_id)+'</b><div class="meta">'+esc(r.status)+'<br>利用者ID：'+esc(r.user_id||'—')+'<br>'+esc(r.plan_name||r.plan_code||'')+' / 分析'+esc(r.analysis_count||1)+'回目<br>'+new Date(r.updated_at).toLocaleString('ja-JP')+(r.client_report_saved_at?'<br>顧客レポート公開済み':'')+'</div></button>').join('')}
 $('#search').oninput=render;$('#refresh').onclick=load;$('#list').onclick=e=>{const b=e.target.closest('[data-id]');if(b)openRec(b.dataset.id)};
 function ans(v){if(Array.isArray(v))return v.join(', ');return ({0:'一度もなかった',1:'1回あった',2:'2〜3回あった',3:'4回以上あった',4:'ほぼ毎日あった',U:'わからない',S:'答えたくない'})[String(v)]||String(v??'')}
-async function openRec(id){try{CUR=(await api({action:'get',lra_id:id},1)).record;page('detail');$('#did').textContent=CUR.lra_id;$('#dmeta').innerHTML='利用者ID：'+esc(CUR.user_id||'—')+'<br>プラン：'+esc(CUR.plan_name||CUR.plan_code||'')+'<br>分析回数：'+esc(CUR.analysis_count||1)+'<br>更新：'+new Date(CUR.updated_at).toLocaleString('ja-JP');$('#st').value=CUR.status;$('#analysisResult').value=CUR.analysis_result_text||'';$('#copyMsg').textContent='';$('#resultMsg').textContent='';$('#answers').innerHTML=Object.entries(CUR.answers||{}).map(([k,v])=>'<div class="qa"><b>'+esc(k)+'</b><p>'+esc(ans(v))+'</p></div>').join('');scrollTo(0,0)}catch(e){alert(e.message)}}
+async function openRec(id){try{CUR=(await api({action:'get',lra_id:id},1)).record;page('detail');$('#did').textContent=CUR.lra_id;$('#dmeta').innerHTML='利用者ID：'+esc(CUR.user_id||'—')+'<br>プラン：'+esc(CUR.plan_name||CUR.plan_code||'')+'<br>分析回数：'+esc(CUR.analysis_count||1)+'<br>更新：'+new Date(CUR.updated_at).toLocaleString('ja-JP');$('#st').value=CUR.status;$('#analysisResult').value=CUR.analysis_result_text||'';$('#clientReport').value=CUR.client_report_text||'';$('#copyMsg').textContent='';$('#resultMsg').textContent='';$('#clientReportMsg').textContent=CUR.client_report_saved_at?'公開済み：'+new Date(CUR.client_report_saved_at).toLocaleString('ja-JP'):'';$('#answers').innerHTML=Object.entries(CUR.answers||{}).map(([k,v])=>'<div class="qa"><b>'+esc(k)+'</b><p>'+esc(ans(v))+'</p></div>').join('');scrollTo(0,0)}catch(e){alert(e.message)}}
 $('#back').onclick=()=>page('dash');
 $('#save').onclick=async()=>{try{await api({action:'save_status',lra_id:CUR.lra_id,status:$('#st').value},1);CUR.status=$('#st').value;await load();page('detail')}catch(e){alert(e.message)}};
 $('#copyGpt').onclick=async()=>{if(!CUR)return;const m=$('#copyMsg');m.textContent='コピー中…';m.className='copy-note';try{const {check}=await copyGptAnalysisPackage(CUR);m.textContent=`GPT分析用データをコピーしました。質問ID監査：${check.missing.length===0?'欠落なし':'要確認'}`;m.className='copy-note ok'}catch(e){m.textContent=e.message;m.className='copy-note bad'}};
 $('#saveAnalysisResult').onclick=async()=>{if(!CUR)return;const m=$('#resultMsg'),text=$('#analysisResult').value.trim();m.textContent='保存中…';m.className='copy-note';try{const j=await api({action:'save_analysis_result',lra_id:CUR.lra_id,analysis_result_text:text},1);CUR.analysis_result_text=text;CUR.status=j.status;$('#st').value=j.status;m.textContent='分析結果を保存しました。状態をレビュー待ちに更新しました。';m.className='copy-note ok'}catch(e){m.textContent=e.message;m.className='copy-note bad'}};
+$('#saveClientReport').onclick=async()=>{if(!CUR)return;const m=$('#clientReportMsg'),text=$('#clientReport').value.trim();m.textContent='保存中…';m.className='copy-note';try{const j=await api({action:'save_client_report',lra_id:CUR.lra_id,client_report_text:text},1);CUR.client_report_text=text;CUR.client_report_saved_at=j.saved_at;CUR.status=j.status;$('#st').value=j.status;m.textContent='顧客向けレポートを保存し、利用者マイページへ公開しました。';m.className='copy-note ok'}catch(e){m.textContent=e.message;m.className='copy-note bad'}};
 $('#out').onclick=async()=>{try{await api({action:'logout'},1)}catch{}AUTH='';location.reload()};
 boot();
 </script>
