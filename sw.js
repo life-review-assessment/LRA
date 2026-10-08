@@ -1,10 +1,10 @@
-const CACHE='lra-static-v1.3.9';
+const CACHE='lra-static-v1.4.0';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-brand.png',
   './terms.html','./privacy.html','./legal.html',
   './assets/style.css','./assets/questions.js','./assets/short-term.js',
   './assets/lra-canon.js','./assets/legacy-canon.js','./assets/legacy-sheet-schema.js','./assets/legacy-report-assets.js','./assets/inference-contract.js',
-  './assets/main-canonical.js','./assets/account-gate.js?v=139','./assets/account-status.js?v=140','./assets/startup-guard.js?v=139',
+  './assets/main-canonical.js','./assets/account-gate.js?v=150','./assets/account-status.js?v=140','./assets/user-dashboard.js?v=150','./assets/startup-guard.js?v=139',
   './assets/submission-transport.js','./assets/handoff-ui.js','./assets/short-term-ui.js','./assets/pwa.js'
 ];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting()));});
