@@ -6,7 +6,7 @@ let pendingStart=false;
 let mergedRecords=[];
 
 const $=s=>document.querySelector(s);
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m]));}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 function show(view){document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('hidden',el.dataset.view!==view));window.scrollTo({top:0,behavior:'auto'});}
 function getHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'[]');}catch{return[];}}
 function clientKey(id){try{return localStorage.getItem(`${CLIENT_PREFIX}${id}`)||'';}catch{return'';}}
