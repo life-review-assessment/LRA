@@ -1,13 +1,30 @@
-function fileName(packet){const id=packet?.lraId||'LRA';const n=packet?.analysisCount||1;return`${id}_A${n}_submission.json`;}
+import { sendLraSubmission } from './submission-transport.js';
+
 function packetNow(){return window.LRA_RUNTIME?.getAnalysisPacket?.()||null;}
-async function sharePacket(){
+function stateNow(){return window.LRA_RUNTIME?.getState?.()||null;}
+function lead(){return document.querySelector('[data-view="done"] .lead');}
+function setMessage(text,bad=false){const el=lead();if(el){el.textContent=text;el.classList.toggle('bad',bad);}}
+
+async function sendNow(showProgress=true){
   const packet=packetNow();
-  if(!packet){alert('送信データがまだ生成されていません。');return;}
-  const text=JSON.stringify({kind:'LRA_SUBMISSION',schemaVersion:'LRA-SUBMISSION-1.0',lraId:packet.lraId,userId:packet.userId,analysisCount:packet.analysisCount,outputId:packet.outputId,planCode:packet.planCode,status:'分析待ち',savedAt:new Date().toISOString(),analysisPacket:packet,analysis:null},null,2);
-  const file=new File([text],fileName(packet),{type:'application/json'});
+  if(!packet){if(showProgress)alert('送信データがまだ生成されていません。');return false;}
+  if(showProgress)setMessage('管理側へ送信しています…');
   try{
-    if(navigator.canShare?.({files:[file]})&&navigator.share){await navigator.share({title:'LRA回答データ',text:`LRA-ID: ${packet.lraId}`,files:[file]});return;}
-  }catch(e){if(e?.name==='AbortError')return;}
-  const url=URL.createObjectURL(file);const a=document.createElement('a');a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    const state=stateNow()||{};
+    await sendLraSubmission(packet,state.status||'分析待ち');
+    setMessage('回答データを管理側へ送信しました。');
+    const s=document.getElementById('doneStatus');if(s)s.textContent='分析待ち（送信済み）';
+    return true;
+  }catch(e){
+    console.error(e);
+    setMessage('管理側への送信に失敗しました。通信状態を確認して再送信してください。',true);
+    const s=document.getElementById('doneStatus');if(s)s.textContent='送信エラー';
+    return false;
+  }
 }
-const btn=document.getElementById('shareSubmissionBtn');if(btn)btn.addEventListener('click',sharePacket);
+
+const submit=document.getElementById('submitBtn');
+if(submit)submit.addEventListener('click',()=>setTimeout(()=>sendNow(false),0));
+
+const resend=document.getElementById('shareSubmissionBtn');
+if(resend){resend.textContent='管理側へ再送信';resend.addEventListener('click',()=>sendNow(true));}
