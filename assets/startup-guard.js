@@ -1,4 +1,5 @@
 function showHomeAfterCompletedState(){
+  if(window.LRA_ACCOUNT?.authenticated)return;
   const state=window.LRA_RUNTIME?.getState?.();
   if(state?.stage!=='COMPLETE')return;
   document.querySelectorAll('[data-view]').forEach(el=>{
