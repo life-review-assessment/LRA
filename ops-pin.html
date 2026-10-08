@@ -1,1 +1,83 @@
-<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>LRA 管理</title><style>body{margin:0;background:#f4f2ed;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Yu Gothic",sans-serif}.w{max-width:720px;margin:auto;padding:32px 18px}.top{border-top:1px solid #111;padding-top:20px}.ey{font-size:10px;letter-spacing:.18em;color:#777}.ttl{font:400 52px Georgia,"Yu Mincho",serif;margin:14px 0}.lead{font-size:13px;line-height:1.8;color:#555}.hide{display:none}.box,.item{border:1px solid #ccc;background:#faf8f3;padding:16px;margin:12px 0}.inp{width:100%;box-sizing:border-box;padding:14px;font-size:18px;border:1px solid #bbb;background:#fff;margin:8px 0}.btn{padding:14px 18px;border:1px solid #111;background:#111;color:#fff;font-weight:700}.sub{background:transparent;color:#111}.bad{color:#922}.item{width:100%;text-align:left;color:#111}.meta{font-size:11px;color:#777;line-height:1.7;margin-top:8px}.qa{border-top:1px solid #ddd;padding:12px 0}.qa b{font-size:11px;color:#777}.qa p{font-size:13px;line-height:1.7;white-space:pre-wrap}.row{display:flex;gap:8px;flex-wrap:wrap}.status{display:grid;grid-template-columns:1fr auto;gap:8px}</style></head><body><main class="w"><div class="top"><div class="ey">LRA PRIVATE OPERATOR</div></div><section id="auth"><h1 class="ttl">管理画面</h1><p class="lead">認証前は回答データを表示しません。</p><div id="setup" class="box hide"><b>初回設定</b><p class="lead">6〜12桁の数字で管理PINを決めてください。</p><input id="p1" class="inp" inputmode="numeric" maxlength="12" placeholder="新しいPIN"><input id="p2" class="inp" inputmode="numeric" maxlength="12" placeholder="PINをもう一度"><button id="set" class="btn">PINを設定して入る →</button></div><div id="login" class="box hide"><b>管理者ログイン</b><input id="pin" class="inp" inputmode="numeric" maxlength="12" placeholder="PIN"><button id="go" class="btn">ログイン →</button></div><p id="msg" class="lead"></p></section><section id="dash" class="hide"><div class="ey">RECEIVED</div><h1 class="ttl">回答一覧</h1><div class="row"><input id="search" class="inp" placeholder="LRA-ID / 利用者ID"><button id="refresh" class="btn sub">更新</button><button id="out" class="btn sub">ログアウト</button></div><p id="count" class="lead"></p><div id="list"></div></section><section id="detail" class="hide"><button id="back" class="btn sub">← 一覧へ</button><h2 id="did"></h2><div id="dmeta" class="meta"></div><div class="status"><select id="st" class="inp"><option>受付</option><option>回答中</option><option>分析待ち</option><option>分析中</option><option>レビュー待ち</option><option>完了</option><option>納品済み</option></select><button id="save" class="btn">保存</button></div><div id="answers"></div></section></main><script>const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-admin-api';let AUTH='',ROWS=[],CUR=null,SETUP=(location.hash.match(/setup=([^&]+)/)||[])[1]||'';const $=s=>document.querySelector(s);function page(x){['auth','dash','detail'].forEach(v=>$('#'+v).classList.toggle('hide',v!==x))}function box(x){['setup','login'].forEach(v=>$('#'+v).classList.toggle('hide',v!==x))}function msg(t,b){$('#msg').textContent=t||'';$('#msg').className='lead'+(b?' bad':'')}async function api(body,auth){let h={'content-type':'application/json'};if(auth&&AUTH)h.authorization='Bearer '+AUTH;let r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify(body),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'通信エラー');return j}function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}async function boot(){page('auth');try{let s=await api({action:'state'});if(!s.claimed&&SETUP){box('setup');msg('初回設定です。PINを決めてください。')}else if(s.claimed)box('login');else{box('login');msg('初回設定リンクが必要です。',1)}}catch(e){msg(e.message,1)}}$('#set').onclick=async()=>{let a=$('#p1').value,b=$('#p2').value;if(a!==b)return msg('PINが一致しません。',1);try{let j=await api({action:'setup_pin',setup_token:decodeURIComponent(SETUP),pin:a});AUTH=j.token;history.replaceState({},'',location.pathname);SETUP='';await dash()}catch(e){msg(e.message,1)}};$('#go').onclick=async()=>{try{let j=await api({action:'login_pin',pin:$('#pin').value});AUTH=j.token;await dash()}catch(e){msg(e.message,1)}};async function dash(){page('dash');await load()}async function load(){try{ROWS=(await api({action:'list'},1)).records||[];render()}catch(e){AUTH='';page('auth');box('login');msg('認証が切れました。PINを入力してください。',1)}}function render(){let q=$('#search').value.trim().toLowerCase(),x=ROWS.filter(r=>!q||String(r.lra_id).toLowerCase().includes(q)||String(r.user_id||'').toLowerCase().includes(q));$('#count').textContent='受付 '+ROWS.length+'件 / 分析待ち '+ROWS.filter(r=>['分析待ち','分析中','レビュー待ち'].includes(r.status)).length+'件';$('#list').innerHTML=x.map(r=>'<button class="item" data-id="'+esc(r.lra_id)+'"><b>'+esc(r.lra_id)+'</b><div class="meta">'+esc(r.status)+'<br>利用者ID：'+esc(r.user_id||'—')+'<br>'+esc(r.plan_name||r.plan_code||'')+' / 分析'+esc(r.analysis_count||1)+'回目<br>'+new Date(r.updated_at).toLocaleString('ja-JP')+'</div></button>').join('')}$('#search').oninput=render;$('#refresh').onclick=load;$('#list').onclick=e=>{let b=e.target.closest('[data-id]');if(b)openRec(b.dataset.id)};function ans(v){if(Array.isArray(v))return v.join(', ');return ({0:'該当なし',1:'1回',2:'2〜3回',3:'4回以上',4:'ほぼ毎日',U:'わからない',S:'答えたくない'})[String(v)]||String(v??'')}async function openRec(id){try{CUR=(await api({action:'get',lra_id:id},1)).record;page('detail');$('#did').textContent=CUR.lra_id;$('#dmeta').innerHTML='利用者ID：'+esc(CUR.user_id||'—')+'<br>プラン：'+esc(CUR.plan_name||CUR.plan_code||'')+'<br>分析回数：'+esc(CUR.analysis_count||1)+'<br>更新：'+new Date(CUR.updated_at).toLocaleString('ja-JP');$('#st').value=CUR.status;$('#answers').innerHTML=Object.entries(CUR.answers||{}).map(([k,v])=>'<div class="qa"><b>'+esc(k)+'</b><p>'+esc(ans(v))+'</p></div>').join('');scrollTo(0,0)}catch(e){alert(e.message)}}$('#back').onclick=()=>page('dash');$('#save').onclick=async()=>{try{await api({action:'save_status',lra_id:CUR.lra_id,status:$('#st').value},1);CUR.status=$('#st').value;await load();page('detail')}catch(e){alert(e.message)}};$('#out').onclick=async()=>{try{await api({action:'logout'},1)}catch{}AUTH='';location.reload()};boot();</script></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="theme-color" content="#f4f2ed">
+<title>LRA 管理</title>
+<style>
+body{margin:0;background:#f4f2ed;color:#111;font-family:-apple-system,BlinkMacSystemFont,"Yu Gothic",sans-serif}.w{max-width:720px;margin:auto;padding:32px 18px 80px}.top{border-top:1px solid #111;padding-top:20px}.ey{font-size:10px;letter-spacing:.18em;color:#777}.ttl{font:400 52px Georgia,"Yu Mincho",serif;margin:14px 0}.lead{font-size:13px;line-height:1.8;color:#555}.hide{display:none}.box,.item{border:1px solid #ccc;background:#faf8f3;padding:16px;margin:12px 0}.inp,.text{width:100%;box-sizing:border-box;padding:14px;font-size:16px;border:1px solid #bbb;background:#fff;margin:8px 0}.text{min-height:260px;resize:vertical}.btn{padding:14px 18px;border:1px solid #111;background:#111;color:#fff;font-weight:700}.sub{background:transparent;color:#111}.bad{color:#922}.ok{color:#315d38}.item{width:100%;text-align:left;color:#111}.meta{font-size:11px;color:#777;line-height:1.7;margin-top:8px}.qa{border-top:1px solid #ddd;padding:12px 0}.qa b{font-size:11px;color:#777}.qa p{font-size:13px;line-height:1.7;white-space:pre-wrap}.row{display:flex;gap:8px;flex-wrap:wrap}.status{display:grid;grid-template-columns:1fr auto;gap:8px}.analysis-tools{border-top:1px solid #111;margin-top:24px;padding-top:20px}.analysis-tools h3{margin:0 0 10px;font:400 26px Georgia,"Yu Mincho",serif}.analysis-tools p{font-size:12px;line-height:1.7;color:#666}.copy-note{font-size:12px;min-height:20px;margin:10px 0}
+</style>
+</head>
+<body>
+<main class="w">
+<div class="top"><div class="ey">LRA PRIVATE OPERATOR</div></div>
+<section id="auth">
+<h1 class="ttl">管理画面</h1>
+<p class="lead">認証前は回答データを表示しません。</p>
+<div id="setup" class="box hide"><b>初回設定</b><p class="lead">6〜12桁の数字で管理PINを決めてください。</p><input id="p1" class="inp" inputmode="numeric" maxlength="12" placeholder="新しいPIN"><input id="p2" class="inp" inputmode="numeric" maxlength="12" placeholder="PINをもう一度"><button id="set" class="btn">PINを設定して入る →</button></div>
+<div id="login" class="box hide"><b>管理者ログイン</b><input id="pin" class="inp" inputmode="numeric" maxlength="12" placeholder="PIN"><button id="go" class="btn">ログイン →</button></div>
+<p id="msg" class="lead"></p>
+</section>
+
+<section id="dash" class="hide">
+<div class="ey">RECEIVED</div><h1 class="ttl">回答一覧</h1>
+<div class="row"><input id="search" class="inp" placeholder="LRA-ID / 利用者ID"><button id="refresh" class="btn sub">更新</button><button id="out" class="btn sub">ログアウト</button></div>
+<p id="count" class="lead"></p><div id="list"></div>
+</section>
+
+<section id="detail" class="hide">
+<button id="back" class="btn sub">← 一覧へ</button>
+<h2 id="did"></h2><div id="dmeta" class="meta"></div>
+<div class="status"><select id="st" class="inp"><option>受付</option><option>回答中</option><option>分析待ち</option><option>分析中</option><option>レビュー待ち</option><option>完了</option><option>納品済み</option></select><button id="save" class="btn">保存</button></div>
+
+<div class="analysis-tools">
+<h3>GPT分析</h3>
+<p>案件情報・全回答・固定分析依頼・固定結果テンプレートを1回でコピーします。</p>
+<button id="copyGpt" class="btn">GPT分析用コピー</button>
+<div id="copyMsg" class="copy-note"></div>
+</div>
+
+<div id="answers"></div>
+
+<div class="analysis-tools">
+<h3>分析結果</h3>
+<p>ChatGPTから返った「LRA ANALYSIS RESULT」全文をそのまま貼り付けて保存します。</p>
+<textarea id="analysisResult" class="text" placeholder="LRA ANALYSIS RESULT を全文貼り付け"></textarea>
+<button id="saveAnalysisResult" class="btn">分析結果を保存</button>
+<div id="resultMsg" class="copy-note"></div>
+</div>
+</section>
+</main>
+
+<script type="module">
+import {copyGptAnalysisPackage} from './assets/lra-analysis-package.js';
+
+const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-admin-api';
+let AUTH='',ROWS=[],CUR=null,SETUP=(location.hash.match(/setup=([^&]+)/)||[])[1]||'';
+const $=s=>document.querySelector(s);
+function page(x){['auth','dash','detail'].forEach(v=>$('#'+v).classList.toggle('hide',v!==x))}
+function box(x){['setup','login'].forEach(v=>$('#'+v).classList.toggle('hide',v!==x))}
+function msg(t,b){$('#msg').textContent=t||'';$('#msg').className='lead'+(b?' bad':'')}
+async function api(body,auth){const h={'content-type':'application/json'};if(auth&&AUTH)h.authorization='Bearer '+AUTH;const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify(body),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok)throw Error(j.error||'通信エラー');return j}
+function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
+async function boot(){page('auth');try{const s=await api({action:'state'});if(!s.claimed&&SETUP){box('setup');msg('初回設定です。PINを決めてください。')}else if(s.claimed)box('login');else{box('login');msg('初回設定リンクが必要です。',1)}}catch(e){msg(e.message,1)}}
+$('#set').onclick=async()=>{const a=$('#p1').value,b=$('#p2').value;if(a!==b)return msg('PINが一致しません。',1);try{const j=await api({action:'setup_pin',setup_token:decodeURIComponent(SETUP),pin:a});AUTH=j.token;history.replaceState({},'',location.pathname);SETUP='';await dash()}catch(e){msg(e.message,1)}};
+$('#go').onclick=async()=>{try{const j=await api({action:'login_pin',pin:$('#pin').value});AUTH=j.token;await dash()}catch(e){msg(e.message,1)}};
+$('#pin').onkeydown=e=>{if(e.key==='Enter')$('#go').click()};
+async function dash(){page('dash');await load()}
+async function load(){try{ROWS=(await api({action:'list'},1)).records||[];render()}catch(e){AUTH='';page('auth');box('login');msg('認証が切れました。PINを入力してください。',1)}}
+function render(){const q=$('#search').value.trim().toLowerCase(),x=ROWS.filter(r=>!q||String(r.lra_id).toLowerCase().includes(q)||String(r.user_id||'').toLowerCase().includes(q));$('#count').textContent='受付 '+ROWS.length+'件 / 分析待ち '+ROWS.filter(r=>['分析待ち','分析中','レビュー待ち'].includes(r.status)).length+'件';$('#list').innerHTML=x.map(r=>'<button class="item" data-id="'+esc(r.lra_id)+'"><b>'+esc(r.lra_id)+'</b><div class="meta">'+esc(r.status)+'<br>利用者ID：'+esc(r.user_id||'—')+'<br>'+esc(r.plan_name||r.plan_code||'')+' / 分析'+esc(r.analysis_count||1)+'回目<br>'+new Date(r.updated_at).toLocaleString('ja-JP')+'</div></button>').join('')}
+$('#search').oninput=render;$('#refresh').onclick=load;$('#list').onclick=e=>{const b=e.target.closest('[data-id]');if(b)openRec(b.dataset.id)};
+function ans(v){if(Array.isArray(v))return v.join(', ');return ({0:'一度もなかった',1:'1回あった',2:'2〜3回あった',3:'4回以上あった',4:'ほぼ毎日あった',U:'わからない',S:'答えたくない'})[String(v)]||String(v??'')}
+async function openRec(id){try{CUR=(await api({action:'get',lra_id:id},1)).record;page('detail');$('#did').textContent=CUR.lra_id;$('#dmeta').innerHTML='利用者ID：'+esc(CUR.user_id||'—')+'<br>プラン：'+esc(CUR.plan_name||CUR.plan_code||'')+'<br>分析回数：'+esc(CUR.analysis_count||1)+'<br>更新：'+new Date(CUR.updated_at).toLocaleString('ja-JP');$('#st').value=CUR.status;$('#analysisResult').value=CUR.analysis_result_text||'';$('#copyMsg').textContent='';$('#resultMsg').textContent='';$('#answers').innerHTML=Object.entries(CUR.answers||{}).map(([k,v])=>'<div class="qa"><b>'+esc(k)+'</b><p>'+esc(ans(v))+'</p></div>').join('');scrollTo(0,0)}catch(e){alert(e.message)}}
+$('#back').onclick=()=>page('dash');
+$('#save').onclick=async()=>{try{await api({action:'save_status',lra_id:CUR.lra_id,status:$('#st').value},1);CUR.status=$('#st').value;await load();page('detail')}catch(e){alert(e.message)}};
+$('#copyGpt').onclick=async()=>{if(!CUR)return;const m=$('#copyMsg');m.textContent='コピー中…';m.className='copy-note';try{const {check}=await copyGptAnalysisPackage(CUR);m.textContent=`GPT分析用データをコピーしました。質問ID監査：${check.missing.length===0?'欠落なし':'要確認'}`;m.className='copy-note ok'}catch(e){m.textContent=e.message;m.className='copy-note bad'}};
+$('#saveAnalysisResult').onclick=async()=>{if(!CUR)return;const m=$('#resultMsg'),text=$('#analysisResult').value.trim();m.textContent='保存中…';m.className='copy-note';try{const j=await api({action:'save_analysis_result',lra_id:CUR.lra_id,analysis_result_text:text},1);CUR.analysis_result_text=text;CUR.status=j.status;$('#st').value=j.status;m.textContent='分析結果を保存しました。状態をレビュー待ちに更新しました。';m.className='copy-note ok'}catch(e){m.textContent=e.message;m.className='copy-note bad'}};
+$('#out').onclick=async()=>{try{await api({action:'logout'},1)}catch{}AUTH='';location.reload()};
+boot();
+</script>
+</body>
+</html>
