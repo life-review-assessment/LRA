@@ -25,10 +25,11 @@
     const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify(body),cache:'no-store'}),j=await r.json().catch(()=>({}));
     if(!r.ok||j.ok!==true){const e=new Error(j.error||'通信エラー');e.status=r.status;e.code=j.error||'';throw e;}return j;
   }
-  function migrationProof(userId){
+  function migrationProofs(userId){
     let rows=[];try{rows=JSON.parse(lget(HISTORY_KEY)||'[]');}catch{}
-    for(const r of rows){if(r?.userId!==userId||!r?.lraId||!r?.outputId)continue;const key=lget(`${CLIENT_PREFIX}${r.lraId}`);if(/^CLK-[A-F0-9]{32}$/.test(String(key||'')))return{lra_id:r.lraId,output_id:r.outputId,client_key:key};}
-    return null;
+    const proofs=[];
+    for(const r of rows){if(r?.userId!==userId||!r?.lraId||!r?.outputId)continue;const key=lget(`${CLIENT_PREFIX}${r.lraId}`);if(/^CLK-[A-F0-9]{32}$/.test(String(key||'')))proofs.push({lra_id:r.lraId,output_id:r.outputId,client_key:key});}
+    return proofs.slice(0,50);
   }
 
   let account=readAccount();
@@ -67,7 +68,7 @@
     async function create(){
       const name=(gate?.querySelector('#lraGateName')?.value||'').trim()||'利用者',pin=gate?.querySelector('#lraGatePin')?.value||'';
       if(!/^\d{4,12}$/.test(pin))return fail('PINは4〜12桁の数字で設定してください。');
-      const userId=knownId||newUserId();busy(true);try{const j=await api({action:'register',user_id:userId,display_name:name,pin,migration_proof:migrationProof(userId)});finish(j.profile,j.token);}catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'登録できませんでした。もう一度お試しください。');}finally{busy(false);}
+      const userId=knownId||newUserId();busy(true);try{const j=await api({action:'register',user_id:userId,display_name:name,pin,migration_proofs:migrationProofs(userId)});finish(j.profile,j.token);}catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'登録できませんでした。もう一度お試しください。');}finally{busy(false);}
     }
     async function login(){
       const userId=(gate?.querySelector('#lraGateUser')?.value||'').trim().toUpperCase(),pin=gate?.querySelector('#lraGatePin')?.value||'';
@@ -76,7 +77,7 @@
       busy(true);try{
         try{const j=await api({action:'login',user_id:userId,pin});finish(j.profile,j.token);return;}catch(e){if(e.code!=='ACCOUNT_NOT_FOUND')throw e;}
         const legacy=readAccount();if(!legacy||legacy.userId!==userId||!await verifyLegacyPin(legacy,pin))throw new Error('LEGACY_VERIFY_FAILED');
-        const j=await api({action:'register',user_id:userId,display_name:legacy.displayName||'利用者',pin,migration_proof:migrationProof(userId)});finish(j.profile,j.token);
+        const j=await api({action:'register',user_id:userId,display_name:legacy.displayName||'利用者',pin,migration_proofs:migrationProofs(userId)});finish(j.profile,j.token);
       }catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'利用者IDまたはPINを確認してください。');}finally{busy(false);}
     }
     gate.querySelector('#lraGateCreate')?.addEventListener('click',create);
