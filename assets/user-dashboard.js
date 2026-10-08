@@ -26,15 +26,15 @@ function localRows(){
   const p=profile();
   if(!p?.userId)return[];
   const rows=getHistory().filter(r=>r?.userId===p.userId).map(r=>({
-    lra_id:r.lraId,output_id:r.outputId,plan_code:r.planCode,plan_name:PLAN_NAMES[r.planCode]||r.planCode||'',analysis_count:Number(r.analysisCount||1),status:r.status||'受付',updated_at:r.savedAt||null,submission_saved_at:r.savedAt||null,has_report:false,local:true
+    lra_id:r.lraId,output_id:r.outputId,user_id:r.userId,plan_code:r.planCode,plan_name:PLAN_NAMES[r.planCode]||r.planCode||'',analysis_count:Number(r.analysisCount||1),status:r.status||'受付',updated_at:r.savedAt||null,submission_saved_at:r.savedAt||null,has_report:false,local:true
   }));
   const s=stateNow();
-  if(s?.userId===p.userId&&s?.lraId&&!rows.some(r=>r.lra_id===s.lraId))rows.push({lra_id:s.lraId,output_id:s.outputId,plan_code:s.planCode,plan_name:PLAN_NAMES[s.planCode]||s.planCode||'',analysis_count:Number(s.analysisCount||1),status:s.status||'受付',updated_at:s.savedAt||null,submission_saved_at:s.savedAt||null,has_report:false,local:true});
+  if(s?.userId===p.userId&&s?.lraId&&!rows.some(r=>r.lra_id===s.lraId))rows.push({lra_id:s.lraId,output_id:s.outputId,user_id:s.userId,plan_code:s.planCode,plan_name:PLAN_NAMES[s.planCode]||s.planCode||'',analysis_count:Number(s.analysisCount||1),status:s.status||'受付',updated_at:s.savedAt||null,submission_saved_at:s.savedAt||null,has_report:false,local:true});
   return rows;
 }
 
 async function serverRows(local){
-  const records=local.map(r=>({lra_id:r.lra_id,client_key:clientKey(r.lra_id)})).filter(x=>x.client_key);
+  const records=local.map(r=>({lra_id:r.lra_id,client_key:clientKey(r.lra_id),user_id:r.user_id,output_id:r.output_id})).filter(x=>x.client_key);
   if(!records.length)return[];
   try{return (await api({action:'records',records})).records||[];}catch{return[];}
 }
