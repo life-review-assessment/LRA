@@ -10,10 +10,9 @@ export const PLANS=[
 ];
 
 export const OPTIONS=[
-  {name:"再分析単体",price:"1,980円"},
-  {name:"7日ミニ追跡",price:"3,980円"},
-  {name:"特定テーマ分析",price:"2,980円"},
-  {name:"追加レビュー",price:"980円"}
+  {name:"再分析単体",price:"1,980円",note:"前回結果の再確認＋現在の再分析"},
+  {name:"特定テーマ分析",price:"2,980円",note:"前回結果の該当部分を再確認＋1テーマ深掘り"},
+  {name:"7日ミニ追跡",price:"3,980円",note:"前回結果の再確認＋7日追跡＋終了時再分析"}
 ];
 
 const SCALE=[
