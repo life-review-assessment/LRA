@@ -21,7 +21,7 @@
   let account=read();
   sessionSet(SESSION_KEY,null);
   const oldUserId=localGet(USER_KEY);
-  const provisionalUserId=account?.userId||oldUserId||newUserId();
+  let provisionalUserId=account?.userId||oldUserId||null;
   window.LRA_ACCOUNT={authenticated:false,profile:account||null};
 
   const style=document.createElement('style');
@@ -55,7 +55,9 @@
       busy(true);
       try{
         const salt=bytes(16);
-        const profile={userId:provisionalUserId,displayName:name||'利用者',kdf:'PBKDF2-SHA256',iterations:ITERATIONS,salt:b64(salt),pinHash:await pbkdf2(pin,salt),createdAt:new Date().toISOString(),lastLoginAt:new Date().toISOString()};
+        const userId=provisionalUserId||newUserId();
+        provisionalUserId=userId;
+        const profile={userId,displayName:name||'利用者',kdf:'PBKDF2-SHA256',iterations:ITERATIONS,salt:b64(salt),pinHash:await pbkdf2(pin,salt),createdAt:new Date().toISOString(),lastLoginAt:new Date().toISOString()};
         if(!write(profile))return fail('このブラウザでは保存領域を利用できません。');
         account=profile;finish(profile);
       }finally{busy(false);}
