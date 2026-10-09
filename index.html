@@ -38,12 +38,23 @@
       .mobile-break{display:inline}
       .cover h1{font-size:clamp(50px,14vw,64px)!important;line-height:1.10!important}
       .cover-intro{width:100%;max-width:340px;margin-top:22px;padding-right:0;font-size:11.5px;line-height:1.8}
-      .site-section h2{font-size:clamp(38px,10vw,50px)!important;line-height:1.14!important}
+      .site-section{padding:72px 0}
+      .site-section h2{font-size:clamp(36px,9vw,44px)!important;line-height:1.16!important;word-break:normal;line-break:strict;overflow-wrap:normal}
+      .site-steps{margin-top:56px}
+      .flow-list{margin-top:52px}
+      .pricing-head{margin-bottom:46px}
+      .home-options{margin-top:46px;padding-top:24px}
+      .pricing-section{padding-bottom:62px}
+      .result-preview-section{padding-top:62px;padding-bottom:72px}
+      .result-preview-section>.site-wrap>h2{font-size:clamp(36px,8.7vw,42px)!important;line-height:1.18!important;max-width:100%}
+      .result-preview-grid{margin-top:46px}
+      .result-preview-grid article{min-height:0;padding-top:34px;padding-bottom:34px}
       .lra-intro-grid{grid-template-columns:1fr;gap:28px}.lra-intro-copy{padding-top:0}.lra-intro-thesis{font-size:clamp(32px,9vw,44px);line-height:1.42}.lra-intro-decision{margin-top:54px}.lra-intro-decision:before{width:54px;margin-bottom:30px}.lra-intro-decision p{font-size:clamp(34px,9vw,46px);line-height:1.45}
       .home-pricing,.result-preview-grid,.site-steps{border-left:0!important;border-right:0!important}
       .home-plan-card,.result-preview-grid article,.site-steps article,.site-steps article+article{border-left:0!important;border-right:0!important}
       .home-plan-card.featured,.result-preview-grid article.dark{width:auto!important;margin-left:-24px!important;margin-right:-24px!important;padding-left:24px!important;padding-right:24px!important;border-left:0!important;border-right:0!important;border-radius:0!important;background:#181714!important;box-shadow:none!important}
       .flow-section{background:#181714!important}
+      .home-cta-section{padding:76px 0}
       .home-cta-actions{width:100%;min-width:0}.home-resume{width:100%}
     }
   </style>
@@ -74,7 +85,7 @@
 
   <section data-view="home" id="pricing" class="site-section pricing-section"><div class="site-wrap"><p class="site-kicker">PLAN</p><div class="pricing-head"><h2>自分に合う<span class="mobile-break"><br></span>プランを選ぶ。</h2><p>まず試したい方から、継続して変化を追いたい方まで、必要な範囲に合わせて選べます。</p></div><div id="homePlanGrid" class="home-pricing"></div><div class="home-options"><div><p class="site-kicker">OPTIONS</p><h3>追加オプション</h3></div><div id="homeOptionGrid" class="home-option-rows"></div></div></div></section>
 
-  <section data-view="home" id="resultPreview" class="site-section result-preview-section"><div class="site-wrap"><p class="site-kicker">RESULT PREVIEW</p><h2>今の状況を、<br>負担と支えの両方から<span class="mobile-break"><br></span>整理します。</h2><div class="result-preview-grid"><article><span>CURRENT STRUCTURE</span><h3>現在の状況と全体のつながり</h3><p>予定の変更が続き、自分のために使える時間が細切れになっています。そのたびに優先順位を決め直す負担が増えている可能性があります。</p></article><article><span>FUNCTIONING / PROTECT</span><h3>今すでに機能している部分・守りたいもの</h3><p>予定が崩れても、朝の30分だけは比較的自分の時間として確保できています。この条件は、変化を考えるときに先に守る対象になります。</p></article><article><span>RESOURCES</span><h3>今使える支え・資源</h3><p>相談できる人、調整できる時間、使える場所や道具など、今ある資源のうち次の一歩に利用できるものを整理します。</p></article><article class="dark"><span>BOTTLENECK</span><h3>今いちばん影響が大きい部分</h3><p>単純な時間不足より、予定が変わるたびに「何を先にするか」を考え直す負担の方が大きい可能性があります。</p></article><article><span>CHAIN / LOOP</span><h3>今の状態が続いている流れ</h3><p>予定が変わる → 優先順位を決め直す → 始めるのが遅れる → やることが残る → 判断がさらに増える</p></article><article><span>NEXT MOVE</span><h3>次の判断に使える候補</h3><p>予定が崩れたときに、その日の「最優先を1つだけ決め直す」手順を先に作っておく。変えない方がよい条件も含めて比較します。</p></article></div></div></section>
+  <section data-view="home" id="resultPreview" class="site-section result-preview-section"><div class="site-wrap"><p class="site-kicker">RESULT PREVIEW</p><h2>今の状況を、<br>負担と支えの<span class="mobile-break"><br></span>両方から整理します。</h2><div class="result-preview-grid"><article><span>CURRENT STRUCTURE</span><h3>現在の状況と全体のつながり</h3><p>予定の変更が続き、自分のために使える時間が細切れになっています。そのたびに優先順位を決め直す負担が増えている可能性があります。</p></article><article><span>FUNCTIONING / PROTECT</span><h3>今すでに機能している部分・守りたいもの</h3><p>予定が崩れても、朝の30分だけは比較的自分の時間として確保できています。この条件は、変化を考えるときに先に守る対象になります。</p></article><article><span>RESOURCES</span><h3>今使える支え・資源</h3><p>相談できる人、調整できる時間、使える場所や道具など、今ある資源のうち次の一歩に利用できるものを整理します。</p></article><article class="dark"><span>BOTTLENECK</span><h3>今いちばん影響が大きい部分</h3><p>単純な時間不足より、予定が変わるたびに「何を先にするか」を考え直す負担の方が大きい可能性があります。</p></article><article><span>CHAIN / LOOP</span><h3>今の状態が続いている流れ</h3><p>予定が変わる → 優先順位を決め直す → 始めるのが遅れる → やることが残る → 判断がさらに増える</p></article><article><span>NEXT MOVE</span><h3>次の判断に使える候補</h3><p>予定が崩れたときに、その日の「最優先を1つだけ決め直す」手順を先に作っておく。変えない方がよい条件も含めて比較します。</p></article></div></div></section>
 
   <section data-view="home" class="site-section home-cta-section"><div class="site-wrap home-cta"><div><p class="site-kicker">START LRA</p><h2>今の暮らしを、<br>少し<span class="mobile-break"><br></span>整理してみる。</h2></div><div class="home-cta-actions"><button class="home-start" id="homeStartBtn">無料で試してみる <span>↗</span></button><button class="home-resume" id="homeResumeBtn" hidden>続きから <span>↗</span></button></div></div></section>
 
