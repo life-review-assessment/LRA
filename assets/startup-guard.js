@@ -1,3 +1,4 @@
+const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
 const IN_PROGRESS=new Set(['CORE','ADAPTIVE','EVENT_CHECK','EVENT_TRACE','REFLECTION','REVIEW','SHORT_TERM_OBSERVATION']);
 
 function showOnly(view){
@@ -5,15 +6,27 @@ function showOnly(view){
   window.scrollTo({top:0,behavior:'auto'});
 }
 
+async function hasValidSavedSession(){
+  if(window.LRA_ACCOUNT?.authenticated)return true;
+  const token=window.LRA_ACCOUNT_UI?.getToken?.()||'';
+  if(!token)return false;
+  try{
+    const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${token}`},body:JSON.stringify({action:'session'}),cache:'no-store'});
+    const j=await r.json().catch(()=>({}));
+    return r.ok&&j.ok===true;
+  }catch{return false;}
+}
+
 async function guardStartup(){
   const state=window.LRA_RUNTIME?.getState?.();
   if(!state)return;
-  if(IN_PROGRESS.has(state.stage)&&!window.LRA_ACCOUNT?.authenticated){
+  if(IN_PROGRESS.has(state.stage)){
+    if(await hasValidSavedSession()){window.LRA_RUNTIME?.resume?.();return;}
     const profile=await window.LRA_ACCOUNT_UI?.ensureAccount?.();
     if(profile)window.LRA_RUNTIME?.resume?.();else showOnly('home');
     return;
   }
-  if(state.stage==='COMPLETE'&&!window.LRA_ACCOUNT?.authenticated)showOnly('home');
+  if(state.stage==='COMPLETE'&&!await hasValidSavedSession())showOnly('home');
 }
 
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',()=>setTimeout(guardStartup,0),{once:true});
