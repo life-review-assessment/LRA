@@ -17,12 +17,6 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "./lra-brand.png",
-      "sizes": "any",
-      "type": "image/png",
-      "purpose": "any"
     }
   ]
 }
