@@ -94,6 +94,4 @@
     const profile=await ensureAccount();
     if(profile)target.click();
   },true);
-
-  if(account)mount('login');
 })();
