@@ -40,11 +40,13 @@ function renderIntro(){show('intro');$('#introPlan').textContent=`${plan().name}
 function selectAdaptive(){
   const triggered=new Set();
   CORE.forEach(q=>{if(['3','4','U','S'].includes(state.answers[q.questionId]))q.branchTags.forEach(t=>triggered.add(t));});
-  const ranked=ADAPTIVE.map((q,order)=>({q,order,score:q.branchTags.filter(t=>triggered.has(t)).length+(q.domain==='CROSS'?0.35:0)+(q.type==='PROTECT'?0.15:0)+(q.type==='COMPARE'?0.10:0)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.order-b.order);
+  const ranked=ADAPTIVE.map((q,order)=>{const direct=q.branchTags.filter(t=>triggered.has(t)).length;return{q,order,direct,score:direct+(q.domain==='CROSS'?0.35:0)+(q.type==='PROTECT'?0.15:0)+(q.type==='COMPARE'?0.10:0)};}).filter(x=>x.q.domain!=='CROSS'&&x.direct>0).sort((a,b)=>b.score-a.score||a.order-b.order);
   const out=[],counts={};
-  for(const x of ranked){if(out.length>=14)break;const d=x.q.domain;if(d!=='CROSS'&&(counts[d]||0)>=4)continue;out.push(x.q);counts[d]=(counts[d]||0)+1;}
+  for(const x of ranked){if(out.length>=14)break;const d=x.q.domain;if((counts[d]||0)>=4)continue;out.push(x.q);counts[d]=(counts[d]||0)+1;}
   for(const q of ADAPTIVE.filter(q=>q.domain==='CROSS').slice(0,3)){if(out.length>=14)break;if(!out.some(x=>x.questionId===q.questionId))out.push(q);}
-  state.adaptiveQuestionIds=out.map(q=>q.questionId);persist();return out;
+  const nextIds=out.map(q=>q.questionId);
+  ADAPTIVE.forEach(q=>{if(!nextIds.includes(q.questionId))delete state.answers[q.questionId];});
+  state.adaptiveQuestionIds=nextIds;persist();return out;
 }
 function stageQuestions(){if(state.stage==='CORE')return CORE;if(state.stage==='ADAPTIVE'){const ids=state.adaptiveQuestionIds.length?state.adaptiveQuestionIds:selectAdaptive().map(q=>q.questionId);return ids.map(id=>ADAPTIVE.find(q=>q.questionId===id)).filter(Boolean);}if(state.stage==='EVENT_TRACE')return EVENT_TRACE;if(state.stage==='REFLECTION')return REFLECTION;if(state.stage==='SHORT_TERM_OBSERVATION')return SHORT_TERM_OBSERVATION;return[];}
 function advanceStage(){state.index=0;if(state.stage==='CORE'){selectAdaptive();state.stage='ADAPTIVE';}else if(state.stage==='ADAPTIVE')state.stage='EVENT_CHECK';else if(state.stage==='EVENT_TRACE')state.stage='REFLECTION';else if(state.stage==='REFLECTION'||state.stage==='SHORT_TERM_OBSERVATION')state.stage='REVIEW';persist();renderState();}
@@ -63,7 +65,7 @@ function renderQuestion(){
   $('#backBtn').onclick=()=>{if(state.index>0){state.index--;persist();renderQuestion();return;}if(state.stage==='ADAPTIVE'){state.stage='CORE';state.index=CORE.length-1;persist();renderQuestion();return;}if(state.stage==='EVENT_TRACE'){state.stage='EVENT_CHECK';persist();renderEventCheck();return;}if(state.stage==='REFLECTION'){state.stage=state.eventTraceUsed?'EVENT_TRACE':'EVENT_CHECK';state.index=state.eventTraceUsed?EVENT_TRACE.length-1:0;persist();renderState();return;}if(state.stage==='SHORT_TERM_OBSERVATION'){state.stage='COMPLETE';persist();renderDone();}};
   $('#nextBtn').onclick=()=>{let value;if(q.answerType==='multi_choice')value=[...area.querySelectorAll('input:checked')].map(x=>x.value);else if(q.answerType==='single_choice')value=state.answers[q.questionId];else value=area.querySelector('.text-field')?.value.trim()||'';if(q.required&&(value===undefined||value===null||value===''||(Array.isArray(value)&&!value.length))){alert('回答を選んでください。');return;}state.answers[q.questionId]=value;state.index++;persist();renderQuestion();};
 }
-function renderEventCheck(){show('event');$('#eventYes').onclick=()=>{state.eventTraceUsed=true;state.stage='EVENT_TRACE';state.index=0;persist();renderQuestion();};$('#eventNo').onclick=()=>{state.eventTraceUsed=false;state.stage='REFLECTION';state.index=0;persist();renderQuestion();};}
+function renderEventCheck(){show('event');$('#eventYes').onclick=()=>{state.eventTraceUsed=true;state.stage='EVENT_TRACE';state.index=0;persist();renderQuestion();};$('#eventNo').onclick=()=>{state.eventTraceUsed=false;EVENT_TRACE.forEach(q=>delete state.answers[q.questionId]);state.stage='REFLECTION';state.index=0;persist();renderQuestion();};}
 
 function makePacket(){const p=buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,SHORT_TERM_OBSERVATION},{questionDbVersion:QUESTION_DB_VERSION,packetVersion:PACKET_VERSION});p.userId=state.userId;p.eventTraceUsed=state.eventTraceUsed;p.adaptiveQuestionIds=[...state.adaptiveQuestionIds];p.inferenceContract=INFERENCE_CONTRACT;p.canon=LRA_CANON;p.previousAnalyses=history().filter(x=>x.userId===state.userId&&x.analysis&&!(x.lraId===state.lraId&&Number(x.analysisCount)===Number(state.analysisCount))).map(x=>({lraId:x.lraId,analysisCount:x.analysisCount,savedAt:x.savedAt,analysis:x.analysis}));return p;}
 function renderReview(){
