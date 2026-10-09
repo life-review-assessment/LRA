@@ -14,7 +14,7 @@ export async function sendLraSubmission(packet,status='分析待ち'){
   const authToken=window.LRA_ACCOUNT_UI?.getToken?.()||'';
   if(!authToken)throw new Error('USER_LOGIN_REQUIRED');
   const payload={kind:'LRA_SUBMISSION',schemaVersion:'LRA-SUBMISSION-1.0',lraId:packet.lraId,userId:packet.userId,analysisCount:Number(packet.analysisCount||1),outputId:packet.outputId,planCode:packet.planCode,status,savedAt:new Date().toISOString(),analysisPacket:packet,analysis:null,clientKey};
-  const res=await fetch(ENDPOINT,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${authToken}`},cache:'no-store',keepalive:true,body:JSON.stringify(payload)});
+  const res=await fetch(ENDPOINT,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${authToken}`},cache:'no-store',body:JSON.stringify(payload)});
   const data=await res.json().catch(()=>({}));
   if(!res.ok||data.ok!==true)throw new Error(data.error||'SUBMISSION_FAILED');
   return data;
