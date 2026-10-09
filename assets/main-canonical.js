@@ -26,7 +26,7 @@ function plan(){return PLANS.find(p=>p.code===state.planCode)||PLANS[0];}
 function money(n){return`${n.toLocaleString('ja-JP')}円`;}
 function show(view){document.querySelectorAll('[data-view]').forEach(x=>x.classList.toggle('hidden',x.dataset.view!==view));window.scrollTo({top:0,behavior:'auto'});}
 function setSync(text,bad=false){document.querySelectorAll('.syncState').forEach(el=>{el.textContent=text;el.classList.toggle('bad',bad);});}
-function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot',"'":'&#039;'}[m]));}
+function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
 
 function beginPlan(code){if(code!=='FREE'){alert('有料プランは現在受付準備中です。');return;}state=blank(code);persist();renderIntro();}
 function renderPlans(){
