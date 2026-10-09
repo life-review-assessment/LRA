@@ -1,5 +1,5 @@
-import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js';
-import { SHORT_TERM_OBSERVATION } from './short-term.js';
+import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261009-ja1';
+import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261009-ja1';
 import { buildAnalysisPacket, LRA_CANON } from './lra-canon.js';
 import { INFERENCE_CONTRACT } from './inference-contract.js';
 
@@ -54,13 +54,13 @@ function advanceStage(){state.index=0;if(state.stage==='CORE'){selectAdaptive();
 function renderQuestion(){
   show('assessment');const list=stageQuestions();const q=list[state.index];if(!q){advanceStage();return;}
   $('#stageLabel').textContent={CORE:'CORE SCAN',ADAPTIVE:'ADAPTIVE SCAN',EVENT_TRACE:'EVENT TRACE',REFLECTION:'REFLECTION',SHORT_TERM_OBSERVATION:'SHORT TERM OBSERVATION'}[state.stage]||state.stage;
-  $('#domainLabel').textContent=domainLabel[q.domain]||q.domain||'';$('#questionCount').textContent=`${state.index+1} / ${list.length}`;$('#progressFill').style.width=`${((state.index+1)/list.length)*100}%`;$('#questionText').textContent=q.text;$('#timeRange').textContent=q.timeRange?`対象期間：${q.timeRange}`:'';
+  $('#domainLabel').textContent=domainLabel[q.domain]||q.domain||'';$('#questionCount').textContent=`${state.index+1} / ${list.length}`;$('#progressFill').style.width=`${((state.index+1)/list.length)*100}%`;$('#questionText').textContent=q.text;$('#timeRange').textContent=q.timeRange?(state.stage==='EVENT_TRACE'?'この出来事について':state.stage==='REFLECTION'?'今の状況について':state.stage==='SHORT_TERM_OBSERVATION'?'今日について':state.stage==='ADAPTIVE'?'対象期間：直近14日を中心に':`対象期間：${q.timeRange}`):'';
   const area=$('#answerArea');area.innerHTML='';const cur=state.answers[q.questionId];
   if(q.answerType==='single_choice'){
-    const box=document.createElement('div');box.className='choice-list';(q.options||[]).forEach(o=>{const b=document.createElement('button');b.className=`choice ${cur===o.value?'selected':''}`;b.type='button';b.innerHTML=`<span>${o.value}</span><b>${o.label}</b>`;b.onclick=()=>{state.answers[q.questionId]=o.value;state.index++;persist();renderQuestion();};box.appendChild(b);});area.appendChild(box);
+    const box=document.createElement('div');box.className='choice-list';(q.options||[]).forEach(o=>{const b=document.createElement('button');b.className=`choice ${cur===o.value?'selected':''}`;b.type='button';const code=(state.stage==='CORE'&&/^[0-4]$/.test(String(o.value)))?`<span>${o.value}</span>`:'';b.innerHTML=`${code}<b>${o.label}</b>`;b.onclick=()=>{state.answers[q.questionId]=o.value;state.index++;persist();renderQuestion();};box.appendChild(b);});area.appendChild(box);
   }else if(q.answerType==='multi_choice'){
     const selected=new Set(Array.isArray(cur)?cur:[]),box=document.createElement('div');box.className='choice-list';(q.options||[]).forEach(o=>{const label=document.createElement('label');label.className='multi';label.innerHTML=`<input type="checkbox" value="${o.value}" ${selected.has(o.value)?'checked':''}><span>${o.label}</span>`;box.appendChild(label);});area.appendChild(box);
-  }else{const t=document.createElement(q.answerType==='text_long'?'textarea':'input');t.className='text-field';if(t.tagName==='TEXTAREA')t.rows=6;t.value=cur||'';t.placeholder='書ける範囲で入力してください';area.appendChild(t);}
+  }else{const t=document.createElement(q.answerType==='text_long'?'textarea':'input');t.className='text-field';if(t.tagName==='TEXTAREA')t.rows=6;t.value=cur||'';t.placeholder='答えられる範囲で大丈夫です。短い言葉でもかまいません';area.appendChild(t);}
   $('#backBtn').disabled=state.stage==='CORE'&&state.index===0;
   $('#backBtn').onclick=()=>{if(state.index>0){state.index--;persist();renderQuestion();return;}if(state.stage==='ADAPTIVE'){state.stage='CORE';state.index=CORE.length-1;persist();renderQuestion();return;}if(state.stage==='EVENT_TRACE'){state.stage='EVENT_CHECK';persist();renderEventCheck();return;}if(state.stage==='REFLECTION'){state.stage=state.eventTraceUsed?'EVENT_TRACE':'EVENT_CHECK';state.index=state.eventTraceUsed?EVENT_TRACE.length-1:0;persist();renderState();return;}if(state.stage==='SHORT_TERM_OBSERVATION'){state.stage='COMPLETE';persist();renderDone();}};
   $('#nextBtn').onclick=()=>{let value;if(q.answerType==='multi_choice')value=[...area.querySelectorAll('input:checked')].map(x=>x.value);else if(q.answerType==='single_choice')value=state.answers[q.questionId];else value=area.querySelector('.text-field')?.value.trim()||'';if(q.required&&(value===undefined||value===null||value===''||(Array.isArray(value)&&!value.length))){alert('回答を選んでください。');return;}state.answers[q.questionId]=value;state.index++;persist();renderQuestion();};
