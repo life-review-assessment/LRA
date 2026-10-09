@@ -1,4 +1,4 @@
-const CACHE='lra-static-v1.5.30';
+const CACHE='lra-static-v1.5.31';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg',
   './terms.html','./privacy.html','./legal.html',
