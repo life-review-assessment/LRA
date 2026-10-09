@@ -12,8 +12,7 @@ export const PLANS=[
 export const OPTIONS=[
   {name:"再分析単体",price:"1,980円"},
   {name:"7日ミニ追跡",price:"3,980円"},
-  {name:"特定テーマ分析",price:"2,980円"},
-  {name:"追加レビュー",price:"980円"}
+  {name:"特定テーマ分析",price:"2,980円"}
 ];
 
 const SCALE=[
