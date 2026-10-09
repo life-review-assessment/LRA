@@ -7,8 +7,8 @@
   "scope": "/LRA/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
-  "background_color": "#f4f2ed",
-  "theme_color": "#f4f2ed",
+  "background_color": "#f6f3ed",
+  "theme_color": "#f6f3ed",
   "lang": "ja",
   "orientation": "portrait-primary",
   "icons": [
@@ -17,12 +17,6 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
-    },
-    {
-      "src": "./lra-brand.png",
-      "sizes": "any",
-      "type": "image/png",
-      "purpose": "any"
     }
   ]
 }

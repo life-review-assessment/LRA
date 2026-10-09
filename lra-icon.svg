@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="LRA">
   <rect width="512" height="512" rx="96" fill="#f4f2ed"/>
-  <circle cx="256" cy="256" r="188" fill="none" stroke="#11110f" stroke-width="10"/>
-  <circle cx="256" cy="256" r="128" fill="none" stroke="#11110f" stroke-width="3" opacity=".45"/>
-  <text x="256" y="286" text-anchor="middle" font-family="Georgia, serif" font-size="112" letter-spacing="8" fill="#11110f">LRA</text>
+  <g transform="translate(137.6 115.2) scale(3.2)">
+    <path fill="#11110f" fill-rule="evenodd" d="M 21 45 L 21 47 L 20 48 L 20 51 L 19 52 L 19 60 L 20 61 L 20 63 L 22 67 L 32 77 L 32 78 L 35 81 L 36 83 L 36 86 L 37 87 L 39 83 L 39 81 L 40 80 L 40 77 L 41 76 L 41 71 L 40 70 L 40 68 L 37 64 L 37 63 L 23 49 Z M 73 42 L 68 38 L 60 34 L 58 34 L 56 33 L 56 36 L 57 37 L 56 39 L 56 41 L 54 45 L 50 49 L 49 49 L 43 56 L 42 58 L 42 65 L 41 66 L 42 66 L 43 63 L 50 57 L 54 55 L 56 55 L 61 52 L 63 52 L 67 49 L 70 48 L 73 45 Z M 36 31 L 36 35 L 35 37 L 30 42 L 28 43 L 25 43 L 25 44 L 27 44 L 31 46 L 34 49 L 36 53 L 36 56 L 37 56 L 37 53 L 39 49 L 42 46 L 46 44 L 48 44 L 48 43 L 45 43 L 43 42 L 39 38 L 37 34 L 37 31 Z M 32 21 L 31 21 L 30 24 L 25 29 L 15 34 L 13 34 L 5 38 L 0 43 L 0 45 L 8 51 L 10 52 L 12 52 L 17 55 L 17 51 L 16 50 L 17 49 L 17 46 L 18 44 L 29 33 L 31 29 L 31 24 L 32 23 Z M 36 0 L 36 2 L 34 5 L 34 8 L 33 9 L 33 16 L 34 17 L 34 19 L 36 23 L 38 25 L 38 26 L 50 38 L 52 42 L 52 40 L 54 36 L 54 25 L 53 24 L 53 22 L 50 18 L 50 17 L 40 7 L 40 6 L 37 2 L 37 0 Z"/>
+  </g>
 </svg>

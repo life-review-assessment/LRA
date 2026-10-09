@@ -1,18 +1,113 @@
-<!doctype html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f4f2ed"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="description" content="LRA - Life Review Assessment。今の暮らしを整理し、これから何を優先するかを考えるための意思決定支援サービス。"><link rel="manifest" href="./manifest.json"><link rel="apple-touch-icon" href="./lra-brand.png"><link rel="stylesheet" href="./assets/style.css"><title>LRA | Life Review Assessment</title></head><body><main>
-<section data-view="home" class="cover"><div class="cover-rings" aria-hidden="true"></div><div class="cover-inner"><img class="cover-brand" src="./lra-brand.png" alt="LRA LIFE REVIEW ASSESSMENT"><button class="cover-login" id="userLoginEntry">ログイン</button><div class="cover-copy"><p class="cover-kicker">DECISION SUPPORT FOR REAL LIFE.</p><h1>今の暮らしを、<br>整理して、<br>次の一歩へ。</h1></div><button class="plan-orbit" id="plansBtn" aria-label="プランを見る"><span>PLAN</span><i>↗</i></button></div></section>
-<section data-view="home" id="about" class="site-section about-section"><div class="site-wrap"><div class="site-section-head"><div><p class="site-kicker">WHAT LRA DOES</p><h2>今の状況を、<br>ひとつずつ整理する。</h2></div><p>LRAは、今の生活で何が負担になっているのか、何が支えになっているのかを整理し、これから何を優先するかを考えるためのサービスです。診断や性格判定をするものではありません。</p></div><div class="site-steps"><article><span>01</span><h3>今の状態を確認する</h3><p>行動、判断、環境、気持ち、回復について、直近14日を振り返ります。</p></article><article><span>02</span><h3>必要なところだけ詳しく見る</h3><p>回答に合わせて必要な質問だけを追加し、負担を増やしすぎないように確認します。</p></article><article><span>03</span><h3>つながりを整理する</h3><p>何が原因になっているか、なぜ続いているか、例外や支えも含めて整理します。</p></article><article><span>04</span><h3>次の一歩を考える</h3><p>守りたいものを残しながら、どこから見直すと状況が動きやすいかを整理します。</p></article></div></div></section>
-<section data-view="home" id="flow" class="site-section flow-section"><div class="site-wrap"><p class="site-kicker light">ASSESSMENT FLOW</p><h2>まず全体を確認して、<br>必要なところだけ詳しく見ます。</h2><div class="flow-list"><div><b>01</b><span>生活全体を確認</span><small>CORE SCAN</small></div><div><b>02</b><span>必要なところを追加で確認</span><small>ADAPTIVE SCAN</small></div><div><b>03</b><span>影響の大きい出来事を確認</span><small>EVENT TRACE</small></div><div><b>04</b><span>全体のつながりを整理</span><small>STRUCTURE ANALYSIS</small></div></div></div></section>
-<section data-view="home" id="pricing" class="site-section pricing-section"><div class="site-wrap"><p class="site-kicker">PLAN</p><div class="pricing-head"><h2>自分に合うプランを選ぶ。</h2><p>まず試したい方から、継続して変化を追いたい方まで、必要な範囲に合わせて選べます。</p></div><div id="homePlanGrid" class="home-pricing"></div><div class="home-options"><div><p class="site-kicker">OPTIONS</p><h3>追加オプション</h3></div><div id="homeOptionGrid" class="home-option-rows"></div></div></div></section>
-<section data-view="home" id="resultPreview" class="site-section result-preview-section"><div class="site-wrap"><p class="site-kicker">RESULT PREVIEW</p><h2>タイプ分けではなく、<br>今の状況を整理します。</h2><div class="result-preview-grid"><article><span>CURRENT STRUCTURE</span><h3>現在の状況と全体のつながり</h3><p>予定の変更が続き、自分のために使える時間が細切れになっています。そのたびに優先順位を決め直す負担が増えている可能性があります。</p></article><article class="dark"><span>BOTTLENECK</span><h3>今いちばん負担になっている部分</h3><p>単純な時間不足より、予定が変わるたびに「何を先にするか」を考え直す負担の方が大きい可能性があります。</p></article><article><span>CHAIN / LOOP</span><h3>負担が続いている流れ</h3><p>予定が変わる → 優先順位を決め直す → 始めるのが遅れる → やることが残る → 判断がさらに増える</p></article><article><span>NEXT MOVE</span><h3>まず試してみること</h3><p>予定が崩れたときに、その日の「最優先を1つだけ決め直す」手順を先に作っておく。</p></article></div></div></section>
-<section data-view="home" class="site-section home-cta-section"><div class="site-wrap home-cta"><div><p class="site-kicker">START LRA</p><h2>今の暮らしを、<br>少し整理してみる。</h2></div><button class="home-start" id="homeStartBtn">無料で試してみる <span>↗</span></button></div></section>
-<div class="app-wrap">
-<section data-view="dashboard" class="hidden user-dashboard"><div class="user-head"><div class="eyebrow">MY LRA</div><h2><span id="userWelcome">利用者さん</span>の<br>マイページ</h2><p>正式に送信したLRA、最新の状態、確定した結果をここで確認できます。</p><div class="micro" id="userDashboardId"></div></div><div class="user-actions"><button class="btn dark" id="userNewBtn">新しくLRAを受ける →</button><button class="btn" id="userPlansBtn">プランを見る</button><button class="btn hidden" id="userResumeBtn">回答を続ける</button><button class="btn" id="userRefreshBtn">最新状態を確認</button><button class="btn" id="userLogoutBtn">ログアウト</button></div><section id="userProgressBox" class="user-progress hidden"><span class="eyebrow">IN PROGRESS</span><h3 id="userProgressTitle">回答途中のLRAがあります</h3><p id="userProgressText"></p></section><div class="user-summary"><article><span>LATEST</span><h3 id="userLatestTitle">読み込み中</h3><p id="userLatestText"></p><div class="user-latest-actions"><span id="userLatestBadge" class="user-new-result hidden">NEW RESULT</span><button class="btn dark hidden" id="userLatestOpenBtn">最新結果を見る →</button></div></article><article><span>UPDATED</span><h3 id="userLatestStatus"></h3><p id="userLatestGuide">顧客向けレポートが確定すると、該当する分析結果を履歴から開けます。</p></article></div><section class="user-history"><div class="user-history-head"><div><span>HISTORY</span><h3>これまでのLRA</h3></div></div><div id="userHistoryList" class="user-history-list"></div></section></section>
-<section data-view="userReport" class="hidden user-report"><button class="btn" id="userReportBackBtn">← マイページへ</button><div class="user-report-head"><span>LRA RESULT</span><h2 id="userReportTitle">結果</h2></div><div id="userReportMeta" class="user-report-meta"></div><div id="userReportWait" class="user-report-wait hidden">結果はまだ準備中です。</div><div id="userReportBody" class="user-report-body"></div></section>
-<section data-view="plans" class="hidden"><div class="eyebrow">PLAN</div><h2 class="display">必要な範囲に合わせて選べます。</h2><div id="planGrid" class="plan-grid"></div><div class="options-panel"><div class="eyebrow">OPTIONS</div><h3>追加オプション</h3><div id="optionGrid"></div></div><div class="notice">有料プランは決済導線の接続前のため、現在は無料体験のみ開始できます。表示料金は現行確定料金です。</div></section>
-<section data-view="intro" class="hidden app card"><div class="eyebrow">START</div><h2>まず、直近14日を振り返ります。</h2><p class="lead">最初は20問です。回答に応じて、必要な質問だけを追加します。途中の内容は自動で保存されるため、一度にすべて答える必要はありません。</p><div class="meta-line"><span>プラン</span><b id="introPlan"></b></div><div class="meta-line"><span>LRA-ID</span><b id="introId"></b></div><label class="consent"><input type="checkbox" id="consent"><span>LRAは診断や専門家による判断の代わりではなく、今の状況を整理し、これからの選択を考えるためのサービスであることを確認しました。</span></label><div class="actions"><button class="btn dark" id="startBtn">回答を始める →</button></div></section>
-<section data-view="assessment" class="hidden app card"><div class="assessment-head"><div><div id="stageLabel" class="eyebrow"></div><b id="domainLabel"></b></div><div id="questionCount" class="micro"></div></div><div class="progress"><i id="progressFill"></i></div><div id="timeRange" class="micro"></div><h2 class="question" id="questionText"></h2><div id="answerArea"></div><div class="actions"><button class="btn" id="backBtn">← 戻る</button><button class="btn dark" id="nextBtn">次へ →</button></div><div class="sync syncState"></div></section>
-<section data-view="event" class="hidden app card"><div class="eyebrow">EVENT TRACE</div><h2>今の状態に大きく影響している出来事はありますか？</h2><p class="lead">思い当たる場合だけ、その出来事の前後を確認します。答えたくない内容を無理に書く必要はありません。</p><div class="actions"><button class="btn dark" id="eventYes">ある →</button><button class="btn" id="eventNo">特にない / 今は答えない</button></div><div class="sync syncState"></div></section>
-<section data-view="review" class="hidden app card"><div class="eyebrow">REVIEW</div><h2>回答内容を確認します。</h2><div id="reviewGrid" class="review-grid"></div><p class="lead">送信すると、回答内容からLRA分析パケットを生成します。</p><div class="actions"><button class="btn dark" id="submitBtn">この内容で送信する →</button></div><div class="sync syncState"></div></section>
-<section data-view="done" class="hidden app card"><div class="eyebrow">RECEIVED</div><h2>回答の受付が完了しました。</h2><p class="lead">回答内容はLRA分析正本に従う分析パケットとして保存されています。</p><div class="meta-line"><span>LRA-ID</span><b id="doneId"></b></div><div class="meta-line"><span>状態</span><b id="doneStatus"></b></div><div class="actions"><button class="btn dark" id="resultBtn">分析状態を確認 →</button></div></section>
-<section data-view="result" class="hidden app card"><div class="eyebrow">RESULT</div><h2>今の暮らしの整理結果</h2><div class="meta-line"><span>状態</span><b id="resultStatus"></b></div><div id="resultBody"></div><div class="actions"><button class="btn dark" id="reloadResultBtn">最新状態を確認</button><button class="btn" id="shortTermBtn">短期観測を開始</button></div><div class="sync syncState"></div></section></div></main>
-<footer class="footer"><span>© LRA</span><nav><a href="./terms.html">TERMS</a><a href="./privacy.html">PRIVACY</a><a href="./legal.html">LEGAL</a></nav><span class="version">Question DB lra-question-db-1.1.0 / LRA-PACKET-1.1</span></footer><script src="./assets/account-gate.js?v=20261008-2340"></script><script type="module" src="./assets/main-canonical.js?v=20261008-2340"></script><script type="module" src="./assets/handoff-ui.js?v=20261008-2340"></script><script type="module" src="./assets/user-dashboard.js?v=20261008-2340"></script><script type="module" src="./assets/short-term-ui.js?v=20261008-2340"></script><script type="module" src="./assets/startup-guard.js?v=20261008-2340"></script><script type="module" src="./assets/pwa.js"></script></body></html>
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f6f3ed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="description" content="LRA - Life Review Assessment。今の暮らしを、負担だけでなく支え・守りたいもの・使える資源まで含めて整理し、これからの選択を考えるための意思決定支援サービス。">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="stylesheet" href="./assets/style.css?v=20261009-final1">
+  <style>
+    .cover-brand{display:flex!important;align-items:center;gap:12px;width:auto!important;max-width:100%!important;height:auto!important;opacity:1!important;visibility:visible!important;filter:none!important;mix-blend-mode:normal!important;color:#171613}
+    .cover-brand-mark{width:59px;height:70px;flex:0 0 auto;display:block;object-fit:contain;background:none!important}
+    .cover-brand-copy{display:flex;flex-direction:column;min-width:0}
+    .cover-brand-word{font:600 36px/.94 Georgia,"Times New Roman",serif;letter-spacing:.105em;white-space:nowrap}
+    .cover-brand-caption{margin-top:7px;font:650 9.25px/1.05 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif!important;letter-spacing:.175em!important;white-space:nowrap}
+    .mobile-break{display:none}
+    .cover h1,.site-section h2{word-break:keep-all;overflow-wrap:normal}
+    .cover-intro{max-width:560px;margin-top:28px;padding-right:150px;color:#5c574f;font-size:13px;line-height:1.9;letter-spacing:.01em}
+    .cover-intro p{margin:0}.cover-intro p+p{margin-top:1px}
+    .lra-intro-grid{display:grid;grid-template-columns:1fr .92fr;gap:8vw;align-items:start}
+    .lra-intro-thesis{font:400 clamp(34px,4.5vw,58px)/1.35 Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:-.035em;margin:0}
+    .lra-intro-copy{padding-top:36px}
+    .lra-intro-copy p{font-size:13px;line-height:2;color:#5c574f;margin:0 0 22px}
+    .lra-intro-copy strong{font-weight:600;color:#171613}
+    .lra-intro-decision{margin-top:74px;padding:0;max-width:920px}
+    .lra-intro-decision:before{content:"";display:block;width:72px;height:1px;background:#171613;margin-bottom:38px}
+    .lra-intro-decision p{font:400 clamp(34px,5vw,62px)/1.35 Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:-.04em;margin:0}
+    .lra-intro-decision small{display:block;margin-top:24px;font-size:13px;line-height:1.9;color:#5c574f}
+    .home-cta-actions{display:grid;gap:10px;min-width:210px}
+    .home-resume{min-height:58px;border:1px solid #171613;background:transparent;color:#171613;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;cursor:pointer}
+    .home-resume span{font-size:20px}
+    @media(max-width:760px){
+      .cover-inner{padding-bottom:235px}
+      .plan-orbit{right:24px;bottom:42px;width:112px;height:112px}
+      .cover-brand{gap:12px}.cover-brand-mark{width:57px;height:68px}.cover-brand-word{font-size:35px;letter-spacing:.10em}.cover-brand-caption{font-size:9px!important;letter-spacing:.17em!important}
+      .mobile-break{display:inline}
+      .cover h1{font-size:clamp(50px,14vw,64px)!important;line-height:1.10!important}
+      .cover-intro{width:100%;max-width:340px;margin-top:22px;padding-right:0;font-size:11.5px;line-height:1.8}
+      .site-section{padding:72px 0}
+      .site-section h2{font-size:clamp(36px,9vw,44px)!important;line-height:1.16!important;word-break:normal;line-break:strict;overflow-wrap:normal}
+      .site-steps{margin-top:56px}
+      .flow-list{margin-top:52px}
+      .pricing-head{margin-bottom:46px}
+      .home-options{margin-top:46px;padding-top:24px}
+      .pricing-section{padding-bottom:62px}
+      .result-preview-section{padding-top:62px;padding-bottom:72px}
+      .result-preview-section>.site-wrap>h2{font-size:clamp(36px,8.7vw,42px)!important;line-height:1.18!important;max-width:100%}
+      .result-preview-grid{margin-top:46px}
+      .result-preview-grid article{min-height:0;padding-top:34px;padding-bottom:34px}
+      .lra-intro-grid{grid-template-columns:1fr;gap:28px}.lra-intro-copy{padding-top:0}.lra-intro-thesis{font-size:clamp(32px,9vw,44px);line-height:1.42}.lra-intro-decision{margin-top:54px}.lra-intro-decision:before{width:54px;margin-bottom:30px}.lra-intro-decision p{font-size:clamp(34px,9vw,46px);line-height:1.45}
+      .home-pricing,.result-preview-grid,.site-steps{border-left:0!important;border-right:0!important}
+      .home-plan-card,.result-preview-grid article,.site-steps article,.site-steps article+article{border-left:0!important;border-right:0!important}
+      .home-plan-card.featured,.result-preview-grid article.dark{width:auto!important;margin-left:-24px!important;margin-right:-24px!important;padding-left:24px!important;padding-right:24px!important;border-left:0!important;border-right:0!important;border-radius:0!important;background:#181714!important;box-shadow:none!important}
+      .flow-section{background:#181714!important}
+      .home-cta-section{padding:76px 0}
+      .home-cta-actions{width:100%;min-width:0}.home-resume{width:100%}
+    }
+  </style>
+  <title>LRA | Life Review Assessment</title>
+</head>
+<body>
+<main>
+  <section data-view="home" class="cover">
+    <div class="cover-rings" aria-hidden="true"></div>
+    <div class="cover-inner">
+      <div class="cover-brand" role="img" aria-label="LRA LIFE REVIEW ASSESSMENT">
+        <img class="cover-brand-mark" src="./lra-brand-mark.svg" alt="" aria-hidden="true">
+        <span class="cover-brand-copy"><span class="cover-brand-word">LRA</span><span class="cover-brand-caption">LIFE REVIEW ASSESSMENT</span></span>
+      </div>
+      <button class="cover-login" id="userLoginEntry">ログイン</button>
+      <div class="cover-copy">
+        <p class="cover-kicker">DECISION SUPPORT FOR REAL LIFE.</p>
+        <h1>生活を、<br>次へ進める<span class="mobile-break"><br></span>形に。</h1>
+        <div class="cover-intro"><p>頑張っているのに、なぜか進まない。</p><p>何かを変えたいのに、どこから変えればいいか分からない。</p></div>
+      </div>
+      <button class="plan-orbit" id="plansBtn" aria-label="プランを見る"><span>PLAN</span><i>↗</i></button>
+    </div>
+  </section>
+
+  <section data-view="home" id="about" class="site-section about-section"><div class="site-wrap"><div class="lra-intro-grid"><div><p class="site-kicker">WHAT LRA DOES</p><p class="lra-intro-thesis">そんなとき、必要なのは<br>もっと頑張ることではなく、<br><strong>今の生活を一度、構造として整理すること。</strong></p></div><div class="lra-intro-copy"><p>LRAは、困りごとや負担だけを見るサービスではありません。<br>支えになっていること、守りたいもの、すでに機能している部分、使える資源まで含めて生活全体を整理します。</p><p>診断や性格判定ではなく、今の生活をそのまま観測し、次の判断に使える形へ整理します。</p></div></div><div class="lra-intro-decision"><p>何を変えるか。何を残すか。次に何を選ぶか。</p><small>LRAは、その判断をしやすくするための意思決定支援です。</small></div><div class="site-steps"><article><span>01</span><h3>今の状態を確認する</h3><p>行動、判断、環境、気持ち、回復について、負担と機能している部分の両方を直近14日から確認します。</p></article><article><span>02</span><h3>必要なところだけ詳しく見る</h3><p>回答に合わせて必要な質問だけを追加し、負担を増やしすぎないように確認します。</p></article><article><span>03</span><h3>つながりを整理する</h3><p>負担が続く流れだけでなく、例外、支え、守りたいもの、使える資源も含めて全体のつながりを整理します。</p></article><article><span>04</span><h3>次の一歩を考える</h3><p>何を変えるかだけでなく、何を変えないかも含めて、次の判断に使える選択肢を整理します。</p></article></div></div></section>
+
+  <section data-view="home" id="flow" class="site-section flow-section"><div class="site-wrap"><p class="site-kicker light">ASSESSMENT FLOW</p><h2>まず全体を<span class="mobile-break"><br></span>確認して、<br>必要なところだけ<span class="mobile-break"><br></span>詳しく見ます。</h2><div class="flow-list"><div><b>01</b><span>生活全体を確認</span><small>CORE SCAN</small></div><div><b>02</b><span>必要なところを追加で確認</span><small>ADAPTIVE SCAN</small></div><div><b>03</b><span>影響の大きい出来事を確認</span><small>EVENT TRACE</small></div><div><b>04</b><span>負担・支え・資源のつながりを整理</span><small>STRUCTURE ANALYSIS</small></div></div></div></section>
+
+  <section data-view="home" id="pricing" class="site-section pricing-section"><div class="site-wrap"><p class="site-kicker">PLAN</p><div class="pricing-head"><h2>自分に合う<span class="mobile-break"><br></span>プランを選ぶ。</h2><p>まず試したい方から、継続して変化を追いたい方まで、必要な範囲に合わせて選べます。</p></div><div id="homePlanGrid" class="home-pricing"></div><div class="home-options"><div><p class="site-kicker">OPTIONS</p><h3>追加オプション</h3></div><div id="homeOptionGrid" class="home-option-rows"></div></div></div></section>
+
+  <section data-view="home" id="resultPreview" class="site-section result-preview-section"><div class="site-wrap"><p class="site-kicker">RESULT PREVIEW</p><h2>今の状況を、<br>負担と支えの<span class="mobile-break"><br></span>両方から整理します。</h2><div class="result-preview-grid"><article><span>CURRENT STRUCTURE</span><h3>現在の状況と全体のつながり</h3><p>予定の変更が続き、自分のために使える時間が細切れになっています。そのたびに優先順位を決め直す負担が増えている可能性があります。</p></article><article><span>FUNCTIONING / PROTECT</span><h3>今すでに機能している部分・守りたいもの</h3><p>予定が崩れても、朝の30分だけは比較的自分の時間として確保できています。この条件は、変化を考えるときに先に守る対象になります。</p></article><article><span>RESOURCES</span><h3>今使える支え・資源</h3><p>相談できる人、調整できる時間、使える場所や道具など、今ある資源のうち次の一歩に利用できるものを整理します。</p></article><article class="dark"><span>BOTTLENECK</span><h3>今いちばん影響が大きい部分</h3><p>単純な時間不足より、予定が変わるたびに「何を先にするか」を考え直す負担の方が大きい可能性があります。</p></article><article><span>CHAIN / LOOP</span><h3>今の状態が続いている流れ</h3><p>予定が変わる → 優先順位を決め直す → 始めるのが遅れる → やることが残る → 判断がさらに増える</p></article><article><span>NEXT MOVE</span><h3>次の判断に使える候補</h3><p>予定が崩れたときに、その日の「最優先を1つだけ決め直す」手順を先に作っておく。変えない方がよい条件も含めて比較します。</p></article></div></div></section>
+
+  <section data-view="home" class="site-section home-cta-section"><div class="site-wrap home-cta"><div><p class="site-kicker">START LRA</p><h2>今の暮らしを、<br>少し<span class="mobile-break"><br></span>整理してみる。</h2></div><div class="home-cta-actions"><button class="home-start" id="homeStartBtn">無料で試してみる <span>↗</span></button><button class="home-resume" id="homeResumeBtn" hidden>続きから <span>↗</span></button></div></div></section>
+
+  <div class="app-wrap">
+    <section data-view="dashboard" class="hidden user-dashboard"><div class="user-head"><div class="eyebrow">MY LRA</div><h2><span id="userWelcome">利用者さん</span>の<br>マイページ</h2><p>正式に送信したLRA、最新の状態、確定した結果をここで確認できます。</p><div class="micro" id="userDashboardId"></div></div><div class="user-actions"><button class="btn dark" id="userNewBtn">新しくLRAを受ける →</button><button class="btn" id="userPlansBtn">プランを見る</button><button class="btn hidden" id="userResumeBtn">回答を続ける</button><button class="btn" id="userRefreshBtn">最新状態を確認</button><button class="btn" id="userLogoutBtn">ログアウト</button></div><section id="userProgressBox" class="user-progress hidden"><span class="eyebrow">IN PROGRESS</span><h3 id="userProgressTitle">回答途中のLRAがあります</h3><p id="userProgressText"></p></section><div class="user-summary"><article><span>LATEST</span><h3 id="userLatestTitle">読み込み中</h3><p id="userLatestText"></p><div class="user-latest-actions"><span id="userLatestBadge" class="user-new-result hidden">NEW RESULT</span><button class="btn dark hidden" id="userLatestOpenBtn">最新結果を見る →</button></div></article><article><span>UPDATED</span><h3 id="userLatestStatus"></h3><p id="userLatestGuide">顧客向けレポートが確定すると、該当する分析結果を履歴から開けます。</p></article></div><section class="user-history"><div class="user-history-head"><div><span>HISTORY</span><h3>これまでのLRA</h3></div></div><div id="userHistoryList" class="user-history-list"></div></section></section>
+    <section data-view="userReport" class="hidden user-report"><button class="btn" id="userReportBackBtn">← マイページへ</button><div class="user-report-head"><span>LRA RESULT</span><h2 id="userReportTitle">結果</h2></div><div id="userReportMeta" class="user-report-meta"></div><div id="userReportWait" class="user-report-wait hidden">結果はまだ準備中です。</div><div id="userReportBody" class="user-report-body"></div></section>
+    <section data-view="plans" class="hidden"><div class="eyebrow">PLAN</div><h2 class="display">必要な範囲に合わせて選べます。</h2><div id="planGrid" class="plan-grid"></div><div class="options-panel"><div class="eyebrow">OPTIONS</div><h3>追加オプション</h3><div id="optionGrid"></div></div><div class="notice">有料プランは決済導線の接続前のため、現在は無料体験のみ開始できます。表示料金は現行確定料金です。</div></section>
+    <section data-view="intro" class="hidden app card"><div class="eyebrow">START</div><h2>まず、直近14日を振り返ります。</h2><p class="lead">最初は20問です。回答に応じて、必要な質問だけを追加します。困りごとだけでなく、今機能している部分、守りたいもの、支えになっている条件も確認します。途中の内容は自動で保存されるため、一度にすべて答える必要はありません。</p><div class="meta-line"><span>プラン</span><b id="introPlan"></b></div><div class="meta-line"><span>LRA-ID</span><b id="introId"></b></div><label class="consent"><input type="checkbox" id="consent"><span>LRAは診断や専門家による判断の代わりではなく、今の状況を整理し、これからの選択を考えるためのサービスであることを確認しました。</span></label><div class="actions"><button class="btn dark" id="startBtn">回答を始める →</button></div></section>
+    <section data-view="assessment" class="hidden app card"><div class="assessment-head"><div><div id="stageLabel" class="eyebrow"></div><b id="domainLabel"></b></div><div id="questionCount" class="micro"></div></div><div class="progress"><i id="progressFill"></i></div><div id="timeRange" class="micro"></div><h2 class="question" id="questionText"></h2><div id="answerArea"></div><div class="actions"><button class="btn" id="backBtn">← 戻る</button><button class="btn dark" id="nextBtn">次へ →</button></div><div class="sync syncState"></div></section>
+    <section data-view="event" class="hidden app card"><div class="eyebrow">EVENT TRACE</div><h2>今の状態に大きく影響している出来事はありますか？</h2><p class="lead">思い当たる場合だけ、その出来事の前後を確認します。答えたくない内容を無理に書く必要はありません。</p><div class="actions"><button class="btn dark" id="eventYes">ある →</button><button class="btn" id="eventNo">特にない / 今は答えない</button></div><div class="sync syncState"></div></section>
+    <section data-view="review" class="hidden app card"><div class="eyebrow">REVIEW</div><h2>回答内容を確認します。</h2><div id="reviewGrid" class="review-grid"></div><p class="lead">送信すると、回答内容からLRA分析パケットを生成します。</p><div class="actions"><button class="btn dark" id="submitBtn">この内容で送信する →</button></div><div class="sync syncState"></div></section>
+    <section data-view="done" class="hidden app card"><div class="eyebrow">RECEIVED</div><h2>回答の受付が完了しました。</h2><p class="lead">回答内容はLRA分析正本に従う分析パケットとして保存されています。</p><div class="meta-line"><span>LRA-ID</span><b id="doneId"></b></div><div class="meta-line"><span>状態</span><b id="doneStatus"></b></div><div class="actions"><button class="btn dark" id="resultBtn">分析状態を確認 →</button></div></section>
+    <section data-view="result" class="hidden app card"><div class="eyebrow">RESULT</div><h2>今の暮らしの整理結果</h2><div class="meta-line"><span>状態</span><b id="resultStatus"></b></div><div id="resultBody"></div><div class="actions"><button class="btn dark" id="reloadResultBtn">最新状態を確認</button><button class="btn" id="shortTermBtn">短期観測を開始</button></div><div class="sync syncState"></div></section>
+  </div>
+</main>
+<footer class="footer"><span>© LRA</span><nav><a href="./terms.html">TERMS</a><a href="./privacy.html">PRIVACY</a><a href="./legal.html">LEGAL</a></nav><span class="version">Question DB lra-question-db-1.1.0 / LRA-PACKET-1.1</span></footer>
+<script src="./assets/account-gate.js?v=20261009-server1"></script>
+<script type="module" src="./assets/main-canonical.js?v=20261009-server1"></script>
+<script type="module" src="./assets/handoff-ui.js?v=20261009-server1"></script>
+<script type="module" src="./assets/user-dashboard.js?v=20261009-server1"></script>
+<script type="module" src="./assets/short-term-ui.js?v=20261009-server1"></script>
+<script type="module" src="./assets/startup-guard.js?v=20261009-server1"></script>
+<script type="module" src="./assets/pwa.js?v=20261009-server1"></script>
+</body>
+</html>

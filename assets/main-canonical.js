@@ -12,7 +12,7 @@ let memoryState=null;
 
 function randomHex(bytes=16){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return[...a].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();}
 function dateStamp(){const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;}
-function getUserId(){let id=null;try{id=localStorage.getItem(userKey);}catch{}if(!id){id=`USR-${dateStamp()}-${randomHex(4)}`;try{localStorage.setItem(userKey,id);}catch{}}return id;}
+function getUserId(){let id=window.LRA_ACCOUNT?.profile?.userId||null;try{id=id||localStorage.getItem(userKey);}catch{}return id||null;}
 function blank(plan='FREE'){return{userId:getUserId(),lraId:`LRA-${dateStamp()}-${randomHex(4)}`,analysisCount:1,planCode:plan,outputId:null,stage:'INTRO',index:0,answers:{},adaptiveQuestionIds:[],eventTraceUsed:null,savedAt:null,status:'受付',analysisPacket:null,analysis:null};}
 function loadState(){try{const x=JSON.parse(localStorage.getItem(stateKey)||'null');if(x&&x.lraId){x.userId=x.userId||getUserId();x.analysisCount=Number(x.analysisCount||1);return x;}}catch{}return memoryState||blank();}
 let state=loadState();
@@ -44,7 +44,9 @@ function selectAdaptive(){
   const out=[],counts={};
   for(const x of ranked){if(out.length>=14)break;const d=x.q.domain;if(d!=='CROSS'&&(counts[d]||0)>=4)continue;out.push(x.q);counts[d]=(counts[d]||0)+1;}
   for(const q of ADAPTIVE.filter(q=>q.domain==='CROSS').slice(0,3)){if(out.length>=14)break;if(!out.some(x=>x.questionId===q.questionId))out.push(q);}
-  state.adaptiveQuestionIds=out.map(q=>q.questionId);persist();return out;
+  const nextIds=out.map(q=>q.questionId);
+  ADAPTIVE.forEach(q=>{if(!nextIds.includes(q.questionId))delete state.answers[q.questionId];});
+  state.adaptiveQuestionIds=nextIds;persist();return out;
 }
 function stageQuestions(){if(state.stage==='CORE')return CORE;if(state.stage==='ADAPTIVE'){const ids=state.adaptiveQuestionIds.length?state.adaptiveQuestionIds:selectAdaptive().map(q=>q.questionId);return ids.map(id=>ADAPTIVE.find(q=>q.questionId===id)).filter(Boolean);}if(state.stage==='EVENT_TRACE')return EVENT_TRACE;if(state.stage==='REFLECTION')return REFLECTION;if(state.stage==='SHORT_TERM_OBSERVATION')return SHORT_TERM_OBSERVATION;return[];}
 function advanceStage(){state.index=0;if(state.stage==='CORE'){selectAdaptive();state.stage='ADAPTIVE';}else if(state.stage==='ADAPTIVE')state.stage='EVENT_CHECK';else if(state.stage==='EVENT_TRACE')state.stage='REFLECTION';else if(state.stage==='REFLECTION'||state.stage==='SHORT_TERM_OBSERVATION')state.stage='REVIEW';persist();renderState();}
@@ -63,7 +65,7 @@ function renderQuestion(){
   $('#backBtn').onclick=()=>{if(state.index>0){state.index--;persist();renderQuestion();return;}if(state.stage==='ADAPTIVE'){state.stage='CORE';state.index=CORE.length-1;persist();renderQuestion();return;}if(state.stage==='EVENT_TRACE'){state.stage='EVENT_CHECK';persist();renderEventCheck();return;}if(state.stage==='REFLECTION'){state.stage=state.eventTraceUsed?'EVENT_TRACE':'EVENT_CHECK';state.index=state.eventTraceUsed?EVENT_TRACE.length-1:0;persist();renderState();return;}if(state.stage==='SHORT_TERM_OBSERVATION'){state.stage='COMPLETE';persist();renderDone();}};
   $('#nextBtn').onclick=()=>{let value;if(q.answerType==='multi_choice')value=[...area.querySelectorAll('input:checked')].map(x=>x.value);else if(q.answerType==='single_choice')value=state.answers[q.questionId];else value=area.querySelector('.text-field')?.value.trim()||'';if(q.required&&(value===undefined||value===null||value===''||(Array.isArray(value)&&!value.length))){alert('回答を選んでください。');return;}state.answers[q.questionId]=value;state.index++;persist();renderQuestion();};
 }
-function renderEventCheck(){show('event');$('#eventYes').onclick=()=>{state.eventTraceUsed=true;state.stage='EVENT_TRACE';state.index=0;persist();renderQuestion();};$('#eventNo').onclick=()=>{state.eventTraceUsed=false;state.stage='REFLECTION';state.index=0;persist();renderQuestion();};}
+function renderEventCheck(){show('event');$('#eventYes').onclick=()=>{state.eventTraceUsed=true;state.stage='EVENT_TRACE';state.index=0;persist();renderQuestion();};$('#eventNo').onclick=()=>{state.eventTraceUsed=false;EVENT_TRACE.forEach(q=>delete state.answers[q.questionId]);state.stage='REFLECTION';state.index=0;persist();renderQuestion();};}
 
 function makePacket(){const p=buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,SHORT_TERM_OBSERVATION},{questionDbVersion:QUESTION_DB_VERSION,packetVersion:PACKET_VERSION});p.userId=state.userId;p.eventTraceUsed=state.eventTraceUsed;p.adaptiveQuestionIds=[...state.adaptiveQuestionIds];p.inferenceContract=INFERENCE_CONTRACT;p.canon=LRA_CANON;p.previousAnalyses=history().filter(x=>x.userId===state.userId&&x.analysis&&!(x.lraId===state.lraId&&Number(x.analysisCount)===Number(state.analysisCount))).map(x=>({lraId:x.lraId,analysisCount:x.analysisCount,savedAt:x.savedAt,analysis:x.analysis}));return p;}
 function renderReview(){
