@@ -1,5 +1,5 @@
 import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261009-ja3';
-import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261009-ja3';
+import { SHORT_TERM_OBSERVATION } from './short-term-ja3.js?v=20261009-ja3';
 import { buildAnalysisPacket, LRA_CANON } from './lra-canon.js';
 import { INFERENCE_CONTRACT } from './inference-contract.js';
 
@@ -32,6 +32,7 @@ function polishStaticCopy(){
   const intro=$('[data-view="intro"] .lead');if(intro)intro.textContent='最初は20問です。その後、回答内容に合わせた追加質問に進みます。困りごとだけでなく、今うまくいっていること、守りたいもの、支えになっている条件も確認します。途中の内容は自動で保存されるため、一度にすべて答える必要はありません。';
   const about1=document.querySelector('#about .site-steps article:nth-child(1) p');if(about1)about1.textContent='行動、決め方、生活環境、気持ち、休息・回復について、負担と今うまくいっている部分の両方を直近14日から確認します。';
   const about2=document.querySelector('#about .site-steps article:nth-child(2) p');if(about2)about2.textContent='回答内容に合わせた追加質問で、必要な部分をもう少し詳しく確認します。';
+  const flowLabels=['基本質問','追加質問','出来事の確認','全体の整理'];document.querySelectorAll('#flow .flow-list small').forEach((el,i)=>{if(flowLabels[i])el.textContent=flowLabels[i];});
   const event=$('[data-view="event"]');if(event){const e=event.querySelector('.eyebrow'),h=event.querySelector('h2'),p=event.querySelector('.lead');if(e)e.textContent='出来事について';if(h)h.textContent='今の生活に大きく影響している出来事はありますか？';if(p)p.textContent='思い当たる場合だけ、その出来事の前後を確認します。答えたくないことを無理に書く必要はありません。';}
   const review=$('[data-view="review"]');if(review){const e=review.querySelector('.eyebrow'),h=review.querySelector('h2'),p=review.querySelector('.lead');if(e)e.textContent='回答の確認';if(h)h.textContent='回答状況を確認します。';if(p)p.textContent='送信すると、回答内容が保存され、分析へ進みます。';}
   const done=$('[data-view="done"]');if(done){const e=done.querySelector('.eyebrow');if(e)e.textContent='受付完了';}
