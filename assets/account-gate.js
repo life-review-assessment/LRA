@@ -1,104 +1,40 @@
 (()=>{
   const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
-  const ACCOUNT_KEY='lra.account.1.0';
-  const USER_KEY='lra.user.1.0';
-  const TOKEN_KEY='lra.user.session.token.1.0';
-  const HISTORY_KEY='lra.history.1.3';
-  const CLIENT_PREFIX='lra.clientKey.';
-  const ITER=150000;
-  const enc=new TextEncoder();
-  const b64=a=>btoa(String.fromCharCode(...a));
-  const fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
-  const bytes=n=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return a;};
-  const hex=a=>[...a].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
-  const dateStamp=()=>{const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;};
-  const newUserId=()=>`USR-${dateStamp()}-${hex(bytes(4))}`;
-  const lget=k=>{try{return localStorage.getItem(k);}catch{return null;}};
-  const lset=(k,v)=>{try{if(v===null)localStorage.removeItem(k);else localStorage.setItem(k,v);return true;}catch{return false;}};
-  const readAccount=()=>{try{return JSON.parse(lget(ACCOUNT_KEY)||'null');}catch{return null;}};
-  const writeAccount=p=>lset(ACCOUNT_KEY,JSON.stringify(p))&&lset(USER_KEY,p.userId);
-  async function legacyDigest(pin,salt){const p=enc.encode(pin),m=new Uint8Array(salt.length+p.length);m.set(salt);m.set(p,salt.length);return b64(new Uint8Array(await crypto.subtle.digest('SHA-256',m)));}
-  async function pbkdf2(pin,salt,iterations=ITER){const key=await crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-256'},key,256);return b64(new Uint8Array(bits));}
-  async function verifyLegacyPin(account,pin){if(!account?.pinHash||!account?.salt)return false;const salt=fromB64(account.salt);if(account.kdf==='PBKDF2-SHA256')return await pbkdf2(pin,salt,Number(account.iterations||ITER))===account.pinHash;return await legacyDigest(pin,salt)===account.pinHash;}
-  async function api(body,token=''){
-    const h={'content-type':'application/json'};if(token)h.authorization=`Bearer ${token}`;
-    const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify(body),cache:'no-store'}),j=await r.json().catch(()=>({}));
-    if(!r.ok||j.ok!==true){const e=new Error(j.error||'通信エラー');e.status=r.status;e.code=j.error||'';throw e;}return j;
+  const ACCOUNT_KEY='lra.account.1.0',USER_KEY='lra.user.1.0',TOKEN_KEY='lra.user.session.token.1.0',HISTORY_KEY='lra.history.1.3',CLIENT_PREFIX='lra.clientKey.';
+  const ITER=150000,enc=new TextEncoder(),b64=a=>btoa(String.fromCharCode(...a)),fromB64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0)),bytes=n=>{const a=new Uint8Array(n);crypto.getRandomValues(a);return a;},hex=a=>[...a].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();
+  const dateStamp=()=>{const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;},newUserId=()=>`USR-${dateStamp()}-${hex(bytes(4))}`;
+  const lget=k=>{try{return localStorage.getItem(k)}catch{return null}},lset=(k,v)=>{try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v);return true}catch{return false}},readAccount=()=>{try{return JSON.parse(lget(ACCOUNT_KEY)||'null')}catch{return null}},writeAccount=p=>lset(ACCOUNT_KEY,JSON.stringify(p))&&lset(USER_KEY,p.userId);
+  async function legacyDigest(pin,salt){const p=enc.encode(pin),m=new Uint8Array(salt.length+p.length);m.set(salt);m.set(p,salt.length);return b64(new Uint8Array(await crypto.subtle.digest('SHA-256',m)))}
+  async function pbkdf2(pin,salt,iterations=ITER){const key=await crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-256'},key,256);return b64(new Uint8Array(bits))}
+  async function verifyLegacyPin(a,pin){if(!a?.pinHash||!a?.salt)return false;const salt=fromB64(a.salt);return(a.kdf==='PBKDF2-SHA256'?await pbkdf2(pin,salt,Number(a.iterations||ITER)):await legacyDigest(pin,salt))===a.pinHash}
+  async function api(body,t=''){const h={'content-type':'application/json'};if(t)h.authorization=`Bearer ${t}`;const r=await fetch(API,{method:'POST',headers:h,body:JSON.stringify(body),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok||j.ok!==true){const e=new Error(j.error||'通信エラー');e.status=r.status;e.code=j.error||'';throw e}return j}
+  function migrationProofs(userId){let rows=[];try{rows=JSON.parse(lget(HISTORY_KEY)||'[]')}catch{}const proofs=[];for(const r of rows){if(r?.userId!==userId||!r?.lraId||!r?.outputId)continue;const key=lget(`${CLIENT_PREFIX}${r.lraId}`);if(/^CLK-[A-F0-9]{32}$/.test(String(key||'')))proofs.push({lra_id:r.lraId,output_id:r.outputId,client_key:key})}return proofs.slice(0,50)}
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+  let account=readAccount(),token=lget(TOKEN_KEY)||'',gate=null,authenticated=false;const waiters=[];window.LRA_ACCOUNT={authenticated:false,profile:null};
+  const style=document.createElement('style');style.textContent=`.lra-gate{position:fixed;inset:0;z-index:99999;background:#f4f2ed;display:grid;place-items:center;padding:24px;overflow:auto}.lra-gate-card{width:min(520px,100%);border-top:1px solid #11110f;padding-top:28px}.lra-gate-kicker{font:600 10px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.22em;color:#777268;margin:0 0 18px}.lra-gate h2{font:400 clamp(34px,8vw,56px)/1.15 Georgia,"Yu Mincho",serif;letter-spacing:-.04em;margin:0 0 18px}.lra-gate p{font-size:13px;line-height:1.9;color:#5c574f}.lra-gate label{display:block;font-size:11px;color:#777268;margin:18px 0 6px}.lra-gate input{width:100%;box-sizing:border-box;min-height:54px;border:1px solid rgba(17,17,15,.25);background:#faf8f2;padding:14px;font-size:16px}.lra-gate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.lra-gate button{min-height:52px;border:1px solid #11110f;background:#11110f;color:#f4f2ed;padding:0 18px}.lra-gate button.alt{background:transparent;color:#11110f}.lra-gate button:disabled{opacity:.45}.lra-gate-error{min-height:20px;margin-top:12px;color:#7b2c2c;font-size:12px}.lra-known-account,.lra-credential{margin:14px 0 2px;padding:14px 0;border-top:1px solid rgba(17,17,15,.12);border-bottom:1px solid rgba(17,17,15,.12)}.lra-known-account strong,.lra-credential strong{display:block;font-size:15px;font-weight:600;color:#11110f}.lra-known-account span,.lra-credential span{display:block;margin-top:5px;font-size:11px;color:#777268}.lra-code{font:700 19px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.05em;word-break:break-all}.cover-login{position:absolute;top:max(20px,env(safe-area-inset-top));right:20px;z-index:4;border:1px solid rgba(17,17,15,.35);background:rgba(244,242,237,.88);color:#11110f;padding:10px 14px;font-size:11px;letter-spacing:.08em}`;document.head.appendChild(style);
+  function profileFrom(p){return{userId:p.user_id||p.userId,displayName:p.display_name||p.displayName||'利用者',loginId:p.login_id||p.loginId||'',serverBacked:true}}
+  function finish(p,newToken){authenticated=true;account=profileFrom(p);token=newToken||token;writeAccount(account);if(token)lset(TOKEN_KEY,token);window.LRA_ACCOUNT={authenticated:true,profile:account};if(gate){gate.remove();gate=null}window.dispatchEvent(new CustomEvent('lra:account-authenticated',{detail:{profile:account}}));while(waiters.length)waiters.shift()(account)}
+  function fail(t){const el=gate?.querySelector('#lraGateError');if(el)el.textContent=t||''}function busy(on){gate?.querySelectorAll('button').forEach(b=>b.disabled=on)}function closeGate(){if(gate){gate.remove();gate=null}}
+  function credentialScreen(j,title='ログイン情報を保存してください。'){closeGate();gate=document.createElement('div');gate.className='lra-gate';gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA ACCOUNT</p><h2>${esc(title)}</h2><p>ログインIDは別のブラウザや端末で使います。復旧コードはPINを忘れた時に必要です。復旧コードはこの画面を閉じると再表示できません。</p><div class="lra-credential"><span>ログインID</span><div class="lra-code">${esc(j.profile?.login_id||j.login_id||'')}</div></div><div class="lra-credential"><span>復旧コード</span><div class="lra-code">${esc(j.recovery_code||'')}</div></div><div class="lra-gate-actions"><button id="lraCopyCredentials" class="alt">2つをコピー</button><button id="lraCredentialDone">保存した →</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;document.body.appendChild(gate);gate.querySelector('#lraCopyCredentials')?.addEventListener('click',async()=>{const text=`LRAログインID：${j.profile?.login_id||j.login_id||''}\n復旧コード：${j.recovery_code||''}`;try{await navigator.clipboard.writeText(text);fail('コピーしました。')}catch{fail('コピーできませんでした。長押しで控えてください。')}});gate.querySelector('#lraCredentialDone')?.addEventListener('click',()=>finish(j.profile,j.token))}
+  function mount(mode,{forceId=false}={}){closeGate();gate=document.createElement('div');gate.className='lra-gate';const knownId=account?.userId||lget(USER_KEY)||'',knownName=account?.displayName||'利用者',useKnown=mode==='login'&&!!knownId&&!forceId;
+    if(mode==='register')gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA ACCOUNT</p><h2>LRAアカウントを作成。</h2><p>表示名とPINを設定します。登録後に短いログインIDと復旧コードを発行します。</p><label>表示名</label><input id="lraGateName" type="text" autocomplete="nickname" maxlength="40" placeholder="表示名"><label>PIN（4〜12桁）</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="4〜12桁"><div class="lra-gate-actions"><button id="lraGateCreate">登録して続ける →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
+    else if(mode==='recover')gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">PIN RECOVERY</p><h2>PINを再設定。</h2><p>登録時に発行したログインIDと復旧コードを入力してください。</p><label>ログインID</label><input id="lraGateLoginId" type="text" autocapitalize="characters" autocomplete="username" placeholder="LRA-XXXXXX"><label>復旧コード</label><input id="lraGateRecovery" type="text" autocapitalize="characters" autocomplete="off" placeholder="RCV-XXXX-XXXX-XXXX"><label>新しいPIN</label><input id="lraGateNewPin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="4〜12桁"><div class="lra-gate-actions"><button id="lraGateReset">PINを再設定 →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
+    else if(mode==='info'){gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">ACCOUNT INFO</p><h2>ログイン情報</h2><div class="lra-credential"><span>ログインID</span><div class="lra-code">${esc(account?.loginId||'取得中')}</div></div><p>復旧コードは安全のため再表示できません。必要な場合は新しく発行すると、以前の復旧コードは無効になります。</p><div class="lra-gate-actions"><button id="lraGateIssueRecovery">復旧コードを新しく発行</button><button class="alt" id="lraGateCancel">閉じる</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`}
+    else if(useKnown)gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>おかえりなさい。</h2><p>このブラウザに保存済みのアカウントです。PINだけ入力してください。</p><div class="lra-known-account"><strong>${esc(knownName)}</strong><span>保存済みLRAアカウント</span></div><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateSwitch">別のアカウントでログイン</button><button class="alt" id="lraGateRecover">PINを忘れた</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
+    else gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>ログイン</h2><p>別のブラウザや端末では、短いログインIDとPINを入力します。</p><label>ログインID</label><input id="lraGateLoginId" type="text" autocapitalize="characters" autocomplete="username" placeholder="LRA-XXXXXX"><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateRecover">PINを忘れた</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
+    document.body.appendChild(gate);gate.querySelector('#lraGateCancel')?.addEventListener('click',()=>{closeGate();while(waiters.length)waiters.shift()(null)});gate.querySelector('#lraGateSwitch')?.addEventListener('click',()=>mount('login',{forceId:true}));gate.querySelector('#lraGateRecover')?.addEventListener('click',()=>mount('recover'));
+    async function create(){const name=(gate?.querySelector('#lraGateName')?.value||'').trim()||'利用者',pin=gate?.querySelector('#lraGatePin')?.value||'';if(!/^\d{4,12}$/.test(pin))return fail('PINは4〜12桁の数字で設定してください。');const userId=knownId||newUserId();busy(true);try{const j=await api({action:'register',user_id:userId,display_name:name,pin,migration_proofs:migrationProofs(userId)});account=profileFrom(j.profile);token=j.token||'';writeAccount(account);if(token)lset(TOKEN_KEY,token);credentialScreen(j)}catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'登録できませんでした。もう一度お試しください。')}finally{busy(false)}}
+    async function login(){const ident=(useKnown?knownId:(gate?.querySelector('#lraGateLoginId')?.value||'')).trim().toUpperCase(),pin=gate?.querySelector('#lraGatePin')?.value||'';if(!ident)return fail('ログインIDを確認してください。');if(!/^\d{4,12}$/.test(pin))return fail('PINを確認してください。');busy(true);try{try{const j=await api({action:'login',login_id:ident,pin});finish(j.profile,j.token);return}catch(e){if(e.code!=='ACCOUNT_NOT_FOUND'||!/^USR-/.test(ident))throw e}const legacy=readAccount();if(!legacy||legacy.userId!==ident||!await verifyLegacyPin(legacy,pin))throw new Error('LEGACY_VERIFY_FAILED');const j=await api({action:'register',user_id:ident,display_name:legacy.displayName||'利用者',pin,migration_proofs:migrationProofs(ident)});account=profileFrom(j.profile);token=j.token||'';writeAccount(account);if(token)lset(TOKEN_KEY,token);credentialScreen(j)}catch{fail(useKnown?'PINを確認してください。':'ログインIDまたはPINを確認してください。')}finally{busy(false)}}
+    async function reset(){const loginId=(gate?.querySelector('#lraGateLoginId')?.value||'').trim().toUpperCase(),recovery=(gate?.querySelector('#lraGateRecovery')?.value||'').trim().toUpperCase(),newPin=gate?.querySelector('#lraGateNewPin')?.value||'';if(!loginId||!recovery||!/^\d{4,12}$/.test(newPin))return fail('入力内容を確認してください。');busy(true);try{const j=await api({action:'reset_pin',login_id:loginId,recovery_code:recovery,new_pin:newPin});account=profileFrom(j.profile);token=j.token||'';writeAccount(account);if(token)lset(TOKEN_KEY,token);credentialScreen(j,'PINを再設定しました。')}catch(e){fail(e.message||'復旧情報を確認してください。')}finally{busy(false)}}
+    async function issueRecovery(){busy(true);try{const j=await api({action:'issue_recovery'},token);credentialScreen({profile:{user_id:account.userId,display_name:account.displayName,login_id:account.loginId},token,recovery_code:j.recovery_code},'新しい復旧コードを発行しました。')}catch(e){fail(e.message||'発行できませんでした。')}finally{busy(false)}}
+    gate.querySelector('#lraGateCreate')?.addEventListener('click',create);gate.querySelector('#lraGateLogin')?.addEventListener('click',login);gate.querySelector('#lraGateReset')?.addEventListener('click',reset);gate.querySelector('#lraGateIssueRecovery')?.addEventListener('click',issueRecovery);gate.querySelector('#lraGatePin')?.addEventListener('keydown',e=>{if(e.key==='Enter')(mode==='register'?create():login())})
   }
-  function migrationProofs(userId){
-    let rows=[];try{rows=JSON.parse(lget(HISTORY_KEY)||'[]');}catch{}
-    const proofs=[];
-    for(const r of rows){if(r?.userId!==userId||!r?.lraId||!r?.outputId)continue;const key=lget(`${CLIENT_PREFIX}${r.lraId}`);if(/^CLK-[A-F0-9]{32}$/.test(String(key||'')))proofs.push({lra_id:r.lraId,output_id:r.outputId,client_key:key});}
-    return proofs.slice(0,50);
-  }
-
-  let account=readAccount();
-  let token=lget(TOKEN_KEY)||'';
-  let gate=null;
-  let authenticated=false;
-  const waiters=[];
-  window.LRA_ACCOUNT={authenticated:false,profile:null};
-
-  const style=document.createElement('style');
-  style.textContent=`.lra-gate{position:fixed;inset:0;z-index:99999;background:#f4f2ed;display:grid;place-items:center;padding:24px}.lra-gate-card{width:min(520px,100%);border-top:1px solid #11110f;padding-top:28px}.lra-gate-kicker{font:600 10px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.22em;color:#777268;margin:0 0 18px}.lra-gate h2{font:400 clamp(34px,8vw,56px)/1.15 Georgia,"Yu Mincho",serif;letter-spacing:-.04em;margin:0 0 18px}.lra-gate p{font-size:13px;line-height:1.9;color:#5c574f}.lra-gate label{display:block;font-size:11px;color:#777268;margin:18px 0 6px}.lra-gate input{width:100%;box-sizing:border-box;min-height:54px;border:1px solid rgba(17,17,15,.25);background:#faf8f2;padding:14px;font-size:16px}.lra-gate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.lra-gate button{min-height:52px;border:1px solid #11110f;background:#11110f;color:#f4f2ed;padding:0 18px}.lra-gate button.alt{background:transparent;color:#11110f}.lra-gate button:disabled{opacity:.45}.lra-gate-error{min-height:20px;margin-top:12px;color:#7b2c2c;font-size:12px}.lra-known-account{margin:14px 0 2px;padding:14px 0;border-top:1px solid rgba(17,17,15,.12);border-bottom:1px solid rgba(17,17,15,.12)}.lra-known-account strong{display:block;font-size:15px;font-weight:600;color:#11110f}.lra-known-account span{display:block;margin-top:4px;font-size:11px;color:#777268}.cover-login{position:absolute;top:max(20px,env(safe-area-inset-top));right:20px;z-index:4;border:1px solid rgba(17,17,15,.35);background:rgba(244,242,237,.88);color:#11110f;padding:10px 14px;font-size:11px;letter-spacing:.08em}`;
-  document.head.appendChild(style);
-
-  function finish(profile,newToken){
-    authenticated=true;account={userId:profile.user_id||profile.userId,displayName:profile.display_name||profile.displayName||'利用者',serverBacked:true};token=newToken||token;
-    writeAccount(account);if(token)lset(TOKEN_KEY,token);
-    window.LRA_ACCOUNT={authenticated:true,profile:account};
-    if(gate){gate.remove();gate=null;}
-    window.dispatchEvent(new CustomEvent('lra:account-authenticated',{detail:{profile:account}}));
-    while(waiters.length)waiters.shift()(account);
-  }
-  function fail(t){const el=gate?.querySelector('#lraGateError');if(el)el.textContent=t||'';}
-  function busy(on){gate?.querySelectorAll('button').forEach(b=>b.disabled=on);}
-  function closeGate(){if(gate){gate.remove();gate=null;}}
-
-  function mount(mode,{returning=false,forceId=false}={}){
-    closeGate();gate=document.createElement('div');gate.className='lra-gate';
-    const knownId=account?.userId||lget(USER_KEY)||'';
-    const knownName=account?.displayName||'利用者';
-    const useKnownAccount=mode==='login'&&!!knownId&&!forceId;
-    if(mode==='register'){
-      gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA ACCOUNT</p><h2>LRAアカウントを作成。</h2><p>結果と利用履歴を本人専用のマイページで確認するため、表示名とPINを設定します。</p><label>表示名</label><input id="lraGateName" type="text" autocomplete="nickname" maxlength="40" placeholder="表示名"><label>PIN（4〜12桁）</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="4〜12桁"><div class="lra-gate-actions"><button id="lraGateCreate">登録して続ける →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
-    }else if(useKnownAccount){
-      gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>おかえりなさい。</h2><p>この端末に登録済みのアカウントです。PINだけ入力してください。</p><div class="lra-known-account"><strong>${String(knownName).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}</strong><span>この端末のLRAアカウント</span></div><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateSwitch">別のアカウントでログイン</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
-    }else{
-      gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>ログイン</h2><p>別の端末や別のアカウントでは、利用者IDとPINを入力します。</p><label>利用者ID</label><input id="lraGateUser" type="text" autocapitalize="characters" autocomplete="off" value="" placeholder="USR-XXXXXXXX-XXXXXXXX"><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
-    }
-    document.body.appendChild(gate);
-    gate.querySelector('#lraGateCancel')?.addEventListener('click',()=>{closeGate();while(waiters.length)waiters.shift()(null);});
-    gate.querySelector('#lraGateSwitch')?.addEventListener('click',()=>mount('login',{returning:true,forceId:true}));
-    async function create(){
-      const name=(gate?.querySelector('#lraGateName')?.value||'').trim()||'利用者',pin=gate?.querySelector('#lraGatePin')?.value||'';
-      if(!/^\d{4,12}$/.test(pin))return fail('PINは4〜12桁の数字で設定してください。');
-      const userId=knownId||newUserId();busy(true);try{const j=await api({action:'register',user_id:userId,display_name:name,pin,migration_proofs:migrationProofs(userId)});finish(j.profile,j.token);}catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'登録できませんでした。もう一度お試しください。');}finally{busy(false);}
-    }
-    async function login(){
-      const userId=(useKnownAccount?knownId:(gate?.querySelector('#lraGateUser')?.value||'').trim().toUpperCase()),pin=gate?.querySelector('#lraGatePin')?.value||'';
-      if(!/^USR-\d{8}-[A-F0-9]{8,32}$/.test(userId))return fail('利用者IDを確認してください。');
-      if(!/^\d{4,12}$/.test(pin))return fail('PINを確認してください。');
-      busy(true);try{
-        try{const j=await api({action:'login',user_id:userId,pin});finish(j.profile,j.token);return;}catch(e){if(e.code!=='ACCOUNT_NOT_FOUND')throw e;}
-        const legacy=readAccount();if(!legacy||legacy.userId!==userId||!await verifyLegacyPin(legacy,pin))throw new Error('LEGACY_VERIFY_FAILED');
-        const j=await api({action:'register',user_id:userId,display_name:legacy.displayName||'利用者',pin,migration_proofs:migrationProofs(userId)});finish(j.profile,j.token);
-      }catch(e){fail(useKnownAccount?'PINを確認してください。':'利用者IDまたはPINを確認してください。');}finally{busy(false);}
-    }
-    gate.querySelector('#lraGateCreate')?.addEventListener('click',create);
-    gate.querySelector('#lraGateLogin')?.addEventListener('click',login);
-    gate.querySelector('#lraGatePin')?.addEventListener('keydown',e=>{if(e.key==='Enter')(mode==='register'?create():login());});
-  }
-
-  function ensureAccount(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);mount(account?'login':'register');});}
-  function openLogin(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);mount('login',{returning:true});});}
-  async function logout(){try{if(token)await api({action:'logout'},token);}catch{}token='';lset(TOKEN_KEY,null);authenticated=false;window.LRA_ACCOUNT={authenticated:false,profile:null};location.reload();}
-  function getToken(){return token;}
-  window.LRA_ACCOUNT_UI=Object.freeze({ensureAccount,openRegistration:ensureAccount,openLogin,logout,getToken});
-
-  async function boot(){
-    const oldId=lget(USER_KEY);if(!account&&oldId)account={userId:oldId,displayName:'利用者'};
-    if(token){try{const j=await api({action:'session'},token);finish(j.profile,token);return;}catch{lset(TOKEN_KEY,null);token='';}}
-  }
+  function ensureAccount(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);mount(account?'login':'register')})}
+  function openLogin(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);mount('login')})}
+  function openAccountInfo(){if(!authenticated){openLogin();return}mount('info')}
+  async function logout(){try{if(token)await api({action:'logout'},token)}catch{}token='';lset(TOKEN_KEY,null);authenticated=false;window.LRA_ACCOUNT={authenticated:false,profile:null};location.reload()}
+  function getToken(){return token}
+  window.LRA_ACCOUNT_UI=Object.freeze({ensureAccount,openRegistration:ensureAccount,openLogin,openAccountInfo,logout,getToken});
+  async function boot(){const oldId=lget(USER_KEY);if(!account&&oldId)account={userId:oldId,displayName:'利用者',loginId:''};if(token){try{const j=await api({action:'session'},token);finish(j.profile,token);return}catch{lset(TOKEN_KEY,null);token=''}}}
   boot();
 })();
