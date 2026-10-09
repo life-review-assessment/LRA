@@ -2,6 +2,7 @@
   const ACCOUNT_KEY='lra.account.1.0';
   const USER_KEY='lra.user.1.0';
   const SESSION_KEY='lra.session.auth.1.0';
+  const STATE_KEY='lra.state.1.3';
   const ITERATIONS=150000;
   const enc=new TextEncoder();
   const b64=a=>btoa(String.fromCharCode(...a));
@@ -17,6 +18,7 @@
   async function pbkdf2(pin,salt,iterations=ITERATIONS){const key=await crypto.subtle.importKey('raw',enc.encode(pin),'PBKDF2',false,['deriveBits']);const bits=await crypto.subtle.deriveBits({name:'PBKDF2',salt,iterations,hash:'SHA-256'},key,256);return b64(new Uint8Array(bits));}
   function read(){try{return JSON.parse(localGet(ACCOUNT_KEY)||'null');}catch{return null;}}
   function write(x){return localSet(ACCOUNT_KEY,JSON.stringify(x))&&localSet(USER_KEY,x.userId);}
+  function hasSavedState(){try{const x=JSON.parse(localGet(STATE_KEY)||'null');return !!(x&&x.lraId);}catch{return false;}}
 
   let account=read();
   sessionSet(SESSION_KEY,null);
@@ -94,4 +96,13 @@
     const profile=await ensureAccount();
     if(profile)target.click();
   },true);
+
+  const resumeBtn=document.getElementById('homeResumeBtn');
+  if(resumeBtn){
+    resumeBtn.hidden=!(account&&hasSavedState());
+    resumeBtn.addEventListener('click',async()=>{
+      const profile=await ensureAccount();
+      if(profile)window.LRA_RUNTIME?.resume?.();
+    });
+  }
 })();
