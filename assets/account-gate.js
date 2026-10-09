@@ -40,7 +40,7 @@
   window.LRA_ACCOUNT={authenticated:false,profile:null};
 
   const style=document.createElement('style');
-  style.textContent=`.lra-gate{position:fixed;inset:0;z-index:99999;background:#f4f2ed;display:grid;place-items:center;padding:24px}.lra-gate-card{width:min(520px,100%);border-top:1px solid #11110f;padding-top:28px}.lra-gate-kicker{font:600 10px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.22em;color:#777268;margin:0 0 18px}.lra-gate h2{font:400 clamp(34px,8vw,56px)/1.15 Georgia,"Yu Mincho",serif;letter-spacing:-.04em;margin:0 0 18px}.lra-gate p{font-size:13px;line-height:1.9;color:#5c574f}.lra-gate label{display:block;font-size:11px;color:#777268;margin:18px 0 6px}.lra-gate input{width:100%;box-sizing:border-box;min-height:54px;border:1px solid rgba(17,17,15,.25);background:#faf8f2;padding:14px;font-size:16px}.lra-gate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.lra-gate button{min-height:52px;border:1px solid #11110f;background:#11110f;color:#f4f2ed;padding:0 18px}.lra-gate button.alt{background:transparent;color:#11110f}.lra-gate button:disabled{opacity:.45}.lra-gate-error{min-height:20px;margin-top:12px;color:#7b2c2c;font-size:12px}.cover-login{position:absolute;top:max(20px,env(safe-area-inset-top));right:20px;z-index:4;border:1px solid rgba(17,17,15,.35);background:rgba(244,242,237,.88);color:#11110f;padding:10px 14px;font-size:11px;letter-spacing:.08em}`;
+  style.textContent=`.lra-gate{position:fixed;inset:0;z-index:99999;background:#f4f2ed;display:grid;place-items:center;padding:24px}.lra-gate-card{width:min(520px,100%);border-top:1px solid #11110f;padding-top:28px}.lra-gate-kicker{font:600 10px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.22em;color:#777268;margin:0 0 18px}.lra-gate h2{font:400 clamp(34px,8vw,56px)/1.15 Georgia,"Yu Mincho",serif;letter-spacing:-.04em;margin:0 0 18px}.lra-gate p{font-size:13px;line-height:1.9;color:#5c574f}.lra-gate label{display:block;font-size:11px;color:#777268;margin:18px 0 6px}.lra-gate input{width:100%;box-sizing:border-box;min-height:54px;border:1px solid rgba(17,17,15,.25);background:#faf8f2;padding:14px;font-size:16px}.lra-gate-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}.lra-gate button{min-height:52px;border:1px solid #11110f;background:#11110f;color:#f4f2ed;padding:0 18px}.lra-gate button.alt{background:transparent;color:#11110f}.lra-gate button:disabled{opacity:.45}.lra-gate-error{min-height:20px;margin-top:12px;color:#7b2c2c;font-size:12px}.lra-known-account{margin:14px 0 2px;padding:14px 0;border-top:1px solid rgba(17,17,15,.12);border-bottom:1px solid rgba(17,17,15,.12)}.lra-known-account strong{display:block;font-size:15px;font-weight:600;color:#11110f}.lra-known-account span{display:block;margin-top:4px;font-size:11px;color:#777268}.cover-login{position:absolute;top:max(20px,env(safe-area-inset-top));right:20px;z-index:4;border:1px solid rgba(17,17,15,.35);background:rgba(244,242,237,.88);color:#11110f;padding:10px 14px;font-size:11px;letter-spacing:.08em}`;
   document.head.appendChild(style);
 
   function finish(profile,newToken){
@@ -55,30 +55,35 @@
   function busy(on){gate?.querySelectorAll('button').forEach(b=>b.disabled=on);}
   function closeGate(){if(gate){gate.remove();gate=null;}}
 
-  function mount(mode,{returning=false}={}){
+  function mount(mode,{returning=false,forceId=false}={}){
     closeGate();gate=document.createElement('div');gate.className='lra-gate';
     const knownId=account?.userId||lget(USER_KEY)||'';
+    const knownName=account?.displayName||'利用者';
+    const useKnownAccount=mode==='login'&&!!knownId&&!forceId;
     if(mode==='register'){
       gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA ACCOUNT</p><h2>LRAアカウントを作成。</h2><p>結果と利用履歴を本人専用のマイページで確認するため、表示名とPINを設定します。</p><label>表示名</label><input id="lraGateName" type="text" autocomplete="nickname" maxlength="40" placeholder="表示名"><label>PIN（4〜12桁）</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="new-password" maxlength="12" placeholder="4〜12桁"><div class="lra-gate-actions"><button id="lraGateCreate">登録して続ける →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
+    }else if(useKnownAccount){
+      gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>おかえりなさい。</h2><p>この端末に登録済みのアカウントです。PINだけ入力してください。</p><div class="lra-known-account"><strong>${String(knownName).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}</strong><span>この端末のLRAアカウント</span></div><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateSwitch">別のアカウントでログイン</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
     }else{
-      gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>ログイン</h2><p>登録済みの利用者IDとPINでマイページを開きます。</p><label>利用者ID</label><input id="lraGateUser" type="text" autocapitalize="characters" autocomplete="off" value="" placeholder="USR-XXXXXXXX-XXXXXXXX"><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
+      gate.innerHTML=`<div class="lra-gate-card"><p class="lra-gate-kicker">LRA LOGIN</p><h2>ログイン</h2><p>別の端末や別のアカウントでは、利用者IDとPINを入力します。</p><label>利用者ID</label><input id="lraGateUser" type="text" autocapitalize="characters" autocomplete="off" value="" placeholder="USR-XXXXXXXX-XXXXXXXX"><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateCancel">戻る</button></div><div id="lraGateError" class="lra-gate-error"></div></div>`;
     }
     document.body.appendChild(gate);
     gate.querySelector('#lraGateCancel')?.addEventListener('click',()=>{closeGate();while(waiters.length)waiters.shift()(null);});
+    gate.querySelector('#lraGateSwitch')?.addEventListener('click',()=>mount('login',{returning:true,forceId:true}));
     async function create(){
       const name=(gate?.querySelector('#lraGateName')?.value||'').trim()||'利用者',pin=gate?.querySelector('#lraGatePin')?.value||'';
       if(!/^\d{4,12}$/.test(pin))return fail('PINは4〜12桁の数字で設定してください。');
       const userId=knownId||newUserId();busy(true);try{const j=await api({action:'register',user_id:userId,display_name:name,pin,migration_proofs:migrationProofs(userId)});finish(j.profile,j.token);}catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'登録できませんでした。もう一度お試しください。');}finally{busy(false);}
     }
     async function login(){
-      const userId=(gate?.querySelector('#lraGateUser')?.value||'').trim().toUpperCase(),pin=gate?.querySelector('#lraGatePin')?.value||'';
+      const userId=(useKnownAccount?knownId:(gate?.querySelector('#lraGateUser')?.value||'').trim().toUpperCase()),pin=gate?.querySelector('#lraGatePin')?.value||'';
       if(!/^USR-\d{8}-[A-F0-9]{8,32}$/.test(userId))return fail('利用者IDを確認してください。');
       if(!/^\d{4,12}$/.test(pin))return fail('PINを確認してください。');
       busy(true);try{
         try{const j=await api({action:'login',user_id:userId,pin});finish(j.profile,j.token);return;}catch(e){if(e.code!=='ACCOUNT_NOT_FOUND')throw e;}
         const legacy=readAccount();if(!legacy||legacy.userId!==userId||!await verifyLegacyPin(legacy,pin))throw new Error('LEGACY_VERIFY_FAILED');
         const j=await api({action:'register',user_id:userId,display_name:legacy.displayName||'利用者',pin,migration_proofs:migrationProofs(userId)});finish(j.profile,j.token);
-      }catch(e){fail(e.code==='MIGRATION_PROOF_REQUIRED'?'既存履歴の本人確認ができませんでした。':'利用者IDまたはPINを確認してください。');}finally{busy(false);}
+      }catch(e){fail(useKnownAccount?'PINを確認してください。':'利用者IDまたはPINを確認してください。');}finally{busy(false);}
     }
     gate.querySelector('#lraGateCreate')?.addEventListener('click',create);
     gate.querySelector('#lraGateLogin')?.addEventListener('click',login);
