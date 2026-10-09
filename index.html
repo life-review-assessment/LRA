@@ -17,6 +17,16 @@
     .cover-brand-caption{margin-top:7px;font:650 9.25px/1.05 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif!important;letter-spacing:.175em!important;white-space:nowrap}
     .mobile-break{display:none}
     .cover h1,.site-section h2{word-break:keep-all;overflow-wrap:normal}
+    .cover-intro{max-width:560px;margin-top:28px;padding-right:150px;color:#5c574f;font-size:13px;line-height:1.9;letter-spacing:.01em}
+    .cover-intro p{margin:0}.cover-intro p+p{margin-top:1px}
+    .lra-intro-grid{display:grid;grid-template-columns:1fr .92fr;gap:8vw;align-items:start}
+    .lra-intro-thesis{font:400 clamp(34px,4.5vw,58px)/1.35 Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:-.035em;margin:0}
+    .lra-intro-copy{padding-top:36px}
+    .lra-intro-copy p{font-size:13px;line-height:2;color:#5c574f;margin:0 0 22px}
+    .lra-intro-copy strong{font-weight:600;color:#171613}
+    .lra-intro-decision{margin-top:74px;padding:38px 0 0;border-top:1px solid #171613;max-width:920px}
+    .lra-intro-decision p{font:400 clamp(34px,5vw,62px)/1.35 Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:-.04em;margin:0}
+    .lra-intro-decision small{display:block;margin-top:24px;font-size:13px;line-height:1.9;color:#5c574f}
     .home-cta-actions{display:grid;gap:10px;min-width:210px}
     .home-resume{min-height:58px;border:1px solid #171613;background:transparent;color:#171613;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;cursor:pointer}
     .home-resume span{font-size:20px}
@@ -24,7 +34,9 @@
       .cover-brand{gap:12px}.cover-brand-mark{width:57px;height:68px}.cover-brand-word{font-size:35px;letter-spacing:.10em}.cover-brand-caption{font-size:9px!important;letter-spacing:.17em!important}
       .mobile-break{display:inline}
       .cover h1{font-size:clamp(50px,14vw,64px)!important;line-height:1.10!important}
+      .cover-intro{max-width:285px;margin-top:22px;padding-right:0;font-size:11.5px;line-height:1.8}
       .site-section h2{font-size:clamp(38px,10vw,50px)!important;line-height:1.14!important}
+      .lra-intro-grid{grid-template-columns:1fr;gap:28px}.lra-intro-copy{padding-top:0}.lra-intro-thesis{font-size:clamp(32px,9vw,44px);line-height:1.42}.lra-intro-decision{margin-top:54px;padding-top:30px}.lra-intro-decision p{font-size:clamp(34px,9vw,46px);line-height:1.45}
       .home-cta-actions{width:100%;min-width:0}.home-resume{width:100%}
     }
   </style>
@@ -42,12 +54,13 @@
       <div class="cover-copy">
         <p class="cover-kicker">DECISION SUPPORT FOR REAL LIFE.</p>
         <h1>生活を、<br>次へ進める<span class="mobile-break"><br></span>形に。</h1>
+        <div class="cover-intro"><p>頑張っているのに、なぜか進まない。</p><p>何かを変えたいのに、どこから変えればいいか分からない。</p></div>
       </div>
       <button class="plan-orbit" id="plansBtn" aria-label="プランを見る"><span>PLAN</span><i>↗</i></button>
     </div>
   </section>
 
-  <section data-view="home" id="about" class="site-section about-section"><div class="site-wrap"><div class="site-section-head"><div><p class="site-kicker">WHAT LRA DOES</p><h2>今の状況を、<br>ひとつずつ<span class="mobile-break"><br></span>整理する。</h2></div><p>LRAは、今の生活で負担になっていることだけでなく、支えになっていること、守りたいもの、うまくいっている条件も一緒に整理し、これから何を優先するかを考えるための意思決定支援サービスです。診断や性格判定をするものではありません。</p></div><div class="site-steps"><article><span>01</span><h3>今の状態を確認する</h3><p>行動、判断、環境、気持ち、回復について、負担と機能している部分の両方を直近14日から確認します。</p></article><article><span>02</span><h3>必要なところだけ詳しく見る</h3><p>回答に合わせて必要な質問だけを追加し、負担を増やしすぎないように確認します。</p></article><article><span>03</span><h3>つながりを整理する</h3><p>負担が続く流れだけでなく、例外、支え、守りたいもの、使える資源も含めて全体のつながりを整理します。</p></article><article><span>04</span><h3>次の一歩を考える</h3><p>何を変えるかだけでなく、何を変えないかも含めて、次の判断に使える選択肢を整理します。</p></article></div></div></section>
+  <section data-view="home" id="about" class="site-section about-section"><div class="site-wrap"><div class="lra-intro-grid"><div><p class="site-kicker">WHAT LRA DOES</p><p class="lra-intro-thesis">そんなとき、必要なのは<br>もっと頑張ることではなく、<br><strong>今の生活を一度、構造として整理すること。</strong></p></div><div class="lra-intro-copy"><p>LRAは、困りごとや負担だけを見るサービスではありません。<br>支えになっていること、守りたいもの、すでに機能している部分、使える資源まで含めて生活全体を整理します。</p><p>診断や性格判定ではなく、今の生活をそのまま観測し、次の判断に使える形へ整理します。</p></div></div><div class="lra-intro-decision"><p>何を変えるか。何を残すか。次に何を選ぶか。</p><small>LRAは、その判断をしやすくするための意思決定支援です。</small></div><div class="site-steps"><article><span>01</span><h3>今の状態を確認する</h3><p>行動、判断、環境、気持ち、回復について、負担と機能している部分の両方を直近14日から確認します。</p></article><article><span>02</span><h3>必要なところだけ詳しく見る</h3><p>回答に合わせて必要な質問だけを追加し、負担を増やしすぎないように確認します。</p></article><article><span>03</span><h3>つながりを整理する</h3><p>負担が続く流れだけでなく、例外、支え、守りたいもの、使える資源も含めて全体のつながりを整理します。</p></article><article><span>04</span><h3>次の一歩を考える</h3><p>何を変えるかだけでなく、何を変えないかも含めて、次の判断に使える選択肢を整理します。</p></article></div></div></section>
 
   <section data-view="home" id="flow" class="site-section flow-section"><div class="site-wrap"><p class="site-kicker light">ASSESSMENT FLOW</p><h2>まず全体を<span class="mobile-break"><br></span>確認して、<br>必要なところだけ<span class="mobile-break"><br></span>詳しく見ます。</h2><div class="flow-list"><div><b>01</b><span>生活全体を確認</span><small>CORE SCAN</small></div><div><b>02</b><span>必要なところを追加で確認</span><small>ADAPTIVE SCAN</small></div><div><b>03</b><span>影響の大きい出来事を確認</span><small>EVENT TRACE</small></div><div><b>04</b><span>負担・支え・資源のつながりを整理</span><small>STRUCTURE ANALYSIS</small></div></div></div></section>
 
