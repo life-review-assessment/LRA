@@ -17,7 +17,8 @@ function seenKey(r){return `${SEEN_PREFIX}${r.lra_id}.${Number(r.analysis_count|
 function seenAt(r){try{return localStorage.getItem(seenKey(r))||'';}catch{return'';}}
 function markSeen(r){try{localStorage.setItem(seenKey(r),r.client_report_saved_at||new Date().toISOString());}catch{}}
 function isNewReport(r){if(!r?.has_report||!r.client_report_saved_at)return false;const seen=seenAt(r);return !seen||new Date(seen)<new Date(r.client_report_saved_at);}
-function statusGuide(status,hasReport){if(hasReport)return'結果を確認できます。';return({受付:'受付が完了しています。',回答中:'回答途中です。',分析待ち:'分析を待っています。',再分析待ち:'再分析を待っています。',分析中:'分析を進めています。',レビュー待ち:'分析結果を確認中です。',完了:'結果の公開準備中です。',納品済み:'結果を確認できます。'})[status]||'現在の状態を確認しています。';}
+function statusGuide(status,hasReport){if(hasReport)return'結果を確認できます。';return({受付:'受付が完了しています。',回答中:'回答途中です。',分析待ち:'分析を進めています。',再分析待ち:'再分析を進めています。',分析中:'分析を進めています。',レビュー待ち:'結果を確認しています。',完了:'結果を準備しています。',納品済み:'結果を確認できます。'})[status]||'現在の状態を確認しています。';}
+function statusLabel(status,hasReport){if(hasReport)return'結果を確認できます';return({受付:'受付済み',回答中:'回答中',分析待ち:'分析中',再分析待ち:'再分析中',分析中:'分析中',レビュー待ち:'結果確認中',完了:'結果準備中',納品済み:'結果を確認できます'})[status]||'確認中';}
 async function api(body){const t=token();if(!t)throw new Error('ログインが必要です。');const r=await fetch(API,{method:'POST',headers:{'content-type':'application/json','authorization':`Bearer ${t}`},body:JSON.stringify(body),cache:'no-store'});const j=await r.json().catch(()=>({}));if(!r.ok||j.ok!==true){const e=new Error(j.error||'通信エラー');e.status=r.status;throw e;}return j;}
 
 const style=document.createElement('style');
@@ -34,8 +35,8 @@ function buildGroups(rows){
   groups.sort((a,b)=>new Date(a.firstAt)-new Date(b.firstAt));groups.forEach((g,i)=>g.useNumber=i+1);return groups.sort((a,b)=>new Date(b.lastAt)-new Date(a.lastAt));
 }
 function renderHistory(){
-  const list=$('#userHistoryList');if(!list)return;if(!grouped.length){list.innerHTML='<div class="user-empty">正式に送信されたLRAの履歴はまだありません。</div>';return;}
-  list.innerHTML=grouped.map(g=>{const plan=g.last.plan_name||PLAN_NAMES[g.last.plan_code]||g.last.plan_code||'LRA';const analysisRows=g.list.map(r=>{const canOpen=!!r.has_report,count=Number(r.analysis_count||1),label=count===1?'分析1回目':`再分析 ${count}回目`,fresh=isNewReport(r);return `<button class="user-analysis-row" data-report-id="${esc(r.lra_id)}" data-analysis-count="${count}" ${canOpen?'':'disabled'}><span><b>${esc(label)}</b><small>${esc(dateText(r.submitted_at||r.updated_at))}</small><span class="user-row-badges"><span class="user-badge">${esc(r.status||'受付')}</span>${fresh?'<span class="user-new-result">NEW RESULT</span>':''}</span></span><strong>${canOpen?'結果を見る →':'結果準備中'}</strong></button>`;}).join('');return `<section class="user-use"><div class="user-use-head"><div><span>LRA ${g.useNumber}</span><h4>LRA利用 ${g.useNumber}回目｜${esc(plan)}</h4><small>${esc(g.lraId)}</small></div><small>${esc(dateText(g.firstAt))}</small></div>${analysisRows}</section>`;}).join('');
+  const list=$('#userHistoryList');if(!list)return;if(!grouped.length){list.innerHTML='<div class="user-empty">送信したLRAの履歴はまだありません。</div>';return;}
+  list.innerHTML=grouped.map(g=>{const plan=g.last.plan_name||PLAN_NAMES[g.last.plan_code]||g.last.plan_code||'LRA';const analysisRows=g.list.map(r=>{const canOpen=!!r.has_report,count=Number(r.analysis_count||1),label=count===1?'分析1回目':`再分析 ${count}回目`,fresh=isNewReport(r);return `<button class="user-analysis-row" data-report-id="${esc(r.lra_id)}" data-analysis-count="${count}" ${canOpen?'':'disabled'}><span><b>${esc(label)}</b><small>${esc(dateText(r.submitted_at||r.updated_at))}</small><span class="user-row-badges"><span class="user-badge">${esc(statusLabel(r.status,r.has_report))}</span>${fresh?'<span class="user-new-result">NEW RESULT</span>':''}</span></span><strong>${canOpen?'結果を見る →':'結果準備中'}</strong></button>`;}).join('');return `<section class="user-use"><div class="user-use-head"><div><span>LRA ${g.useNumber}</span><h4>LRA利用 ${g.useNumber}回目｜${esc(plan)}</h4><small>${esc(g.lraId)}</small></div><small>${esc(dateText(g.firstAt))}</small></div>${analysisRows}</section>`;}).join('');
 }
 function renderProgress(){const box=$('#userProgressBox'),resume=$('#userResumeBtn'),newBtn=$('#userNewBtn');if(!box||!resume||!newBtn)return;const active=isInProgress(),s=stateNow();box.classList.toggle('hidden',!active);resume.classList.toggle('hidden',!active);newBtn.disabled=active;newBtn.textContent=active?'回答中のLRAがあります':'新しくLRAを受ける →';if(active){$('#userProgressTitle').textContent='回答途中のLRAがあります';$('#userProgressText').textContent=`${PLAN_NAMES[s.planCode]||s.planCode||'LRA'}｜${s.lraId}`;}}
 function syncHomeEntry(){const e=$('#userLoginEntry');if(!e)return;e.textContent=window.LRA_ACCOUNT?.authenticated?'マイページ':'ログイン';}
@@ -46,20 +47,20 @@ function renderLatest(latestGroup,latest){
     $('#userLatestTitle').textContent=`LRA利用 ${latestGroup.useNumber}回目｜${latest.plan_name||PLAN_NAMES[latest.plan_code]||latest.plan_code||'LRA'}`;
     $('#userLatestText').textContent=`分析 ${Number(latest.analysis_count||1)}回目｜${statusGuide(latest.status,latest.has_report)}`;
     $('#userLatestStatus').textContent=dateText(latest.client_report_saved_at||latest.submitted_at||latest.updated_at);
-    if(guide)guide.textContent=latest.has_report?'最新の結果は履歴にも保存されています。':'顧客向けレポートが確定すると、履歴から結果を開けます。';
+    if(guide)guide.textContent=latest.has_report?'最新の結果は履歴にも保存されています。':'結果の準備が完了すると、履歴から確認できます。';
     const fresh=isNewReport(latest);if(badge){badge.classList.toggle('hidden',!fresh);badge.textContent='NEW RESULT';}
     if(open){open.classList.toggle('hidden',!latest.has_report);}
     if(latest.has_report)latestReport=latest;
   }else{
-    $('#userLatestTitle').textContent='まだ正式な履歴はありません';$('#userLatestText').textContent='LRAを送信すると、ここに利用履歴と結果が表示されます。';$('#userLatestStatus').textContent='';
+    $('#userLatestTitle').textContent='まだ利用履歴はありません';$('#userLatestText').textContent='LRAを送信すると、ここに利用履歴と結果が表示されます。';$('#userLatestStatus').textContent='';
     if(guide)guide.textContent='';if(badge)badge.classList.add('hidden');if(open)open.classList.add('hidden');
   }
 }
 
 async function loadDashboard(){
-  if(!window.LRA_ACCOUNT?.authenticated)return;syncHomeEntry();show('dashboard');const p=profile();$('#userWelcome').textContent=`${p?.displayName||'利用者'}さん`;$('#userDashboardId').textContent=`利用者ID：${p?.userId||''}`;$('#userHistoryList').innerHTML='<div class="user-empty">履歴を確認しています。</div>';renderProgress();
+  if(!window.LRA_ACCOUNT?.authenticated)return;syncHomeEntry();show('dashboard');const p=profile();$('#userWelcome').textContent=`${p?.displayName||'利用者'}さん`;$('#userDashboardId').textContent=p?.loginId?`ログインID：${p.loginId}`:'';$('#userHistoryList').innerHTML='<div class="user-empty">履歴を確認しています。</div>';renderProgress();
   try{records=(await api({action:'records'})).records||[];grouped=buildGroups(records);renderHistory();const latestGroup=grouped[0],latest=latestGroup?.last;renderLatest(latestGroup,latest);}
-  catch(e){if(e.status===401){await window.LRA_ACCOUNT_UI?.logout?.();return;}$('#userHistoryList').innerHTML='<div class="user-empty user-error">履歴を読み込めませんでした。「最新状態を確認」から再試行してください。</div>';}
+  catch(e){if(e.status===401){await window.LRA_ACCOUNT_UI?.logout?.();return;}$('#userHistoryList').innerHTML='<div class="user-empty user-error">履歴を読み込めませんでした。「最新状態を確認」からもう一度お試しください。</div>';}
 }
 async function openReport(id,count){show('userReport');$('#userReportTitle').textContent='結果を読み込んでいます';$('#userReportBody').textContent='';$('#userReportMeta').textContent='';$('#userReportWait').classList.add('hidden');try{const rec=(await api({action:'get',lra_id:id,analysis_count:Number(count)})).record;$('#userReportTitle').textContent=`${rec.plan_name||PLAN_NAMES[rec.plan_code]||'LRA'}の結果`;$('#userReportMeta').textContent=`${rec.lra_id}｜分析 ${Number(rec.analysis_count||1)}回目｜${dateText(rec.client_report_saved_at||rec.updated_at)}`;if(rec.client_report_text){markSeen({...rec,has_report:true});$('#userReportBody').textContent=rec.client_report_text;$('#userReportBody').classList.remove('hidden');}else{$('#userReportBody').classList.add('hidden');$('#userReportWait').textContent='結果はまだ準備中です。';$('#userReportWait').classList.remove('hidden');}}catch(e){$('#userReportTitle').textContent='結果を読み込めませんでした';$('#userReportBody').classList.add('hidden');$('#userReportWait').textContent='通信状態を確認して、もう一度お試しください。';$('#userReportWait').classList.remove('hidden');}}
 
