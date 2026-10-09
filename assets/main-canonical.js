@@ -1,5 +1,5 @@
 import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261009-ja3';
-import { SHORT_TERM_OBSERVATION } from './short-term-ja3.js?v=20261009-ja3';
+import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261009-ja3';
 import { buildAnalysisPacket, LRA_CANON } from './lra-canon.js';
 import { INFERENCE_CONTRACT } from './inference-contract.js';
 
