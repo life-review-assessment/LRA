@@ -91,3 +91,8 @@ body{color:var(--ink);text-rendering:optimizeLegibility}
   .cover-copy{margin-top:102px}
   .plan-orbit{width:110px;height:110px;right:18px}
 }
+
+/* high-fidelity logo mark: use approved artwork-derived vector, not coarse inline path */
+.cover-brand-mark{background:url("../lra-brand-mark.svg") center/contain no-repeat!important}
+.cover-brand-mark path{display:none!important}
+.cover-brand-caption{font-family:Georgia,"Times New Roman",serif!important;font-weight:600!important;letter-spacing:.14em!important}
