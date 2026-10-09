@@ -1,5 +1,5 @@
-import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261009-ja1';
-import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261009-ja1';
+import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261009-ja2';
+import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261009-ja2';
 import { buildAnalysisPacket, LRA_CANON } from './lra-canon.js';
 import { INFERENCE_CONTRACT } from './inference-contract.js';
 
@@ -7,7 +7,8 @@ const $=s=>document.querySelector(s);
 const stateKey='lra.state.1.3';
 const historyKey='lra.history.1.3';
 const userKey='lra.user.1.0';
-const domainLabel={ACTION:'行動',JUDGMENT:'判断',ENVIRONMENT:'環境',EMOTION:'感情',RECOVERY:'回復',CROSS:'全体'};
+const domainLabel={ACTION:'行動',JUDGMENT:'決め方',ENVIRONMENT:'生活環境',EMOTION:'気持ち',RECOVERY:'休息・回復',CROSS:'全体'};
+const stageLabel={CORE:'基本質問',ADAPTIVE:'追加質問',EVENT_TRACE:'出来事について',REFLECTION:'振り返り',SHORT_TERM_OBSERVATION:'短期チェック'};
 let memoryState=null;
 
 function randomHex(bytes=16){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return[...a].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();}
@@ -53,8 +54,9 @@ function advanceStage(){state.index=0;if(state.stage==='CORE'){selectAdaptive();
 
 function renderQuestion(){
   show('assessment');const list=stageQuestions();const q=list[state.index];if(!q){advanceStage();return;}
-  $('#stageLabel').textContent={CORE:'CORE SCAN',ADAPTIVE:'ADAPTIVE SCAN',EVENT_TRACE:'EVENT TRACE',REFLECTION:'REFLECTION',SHORT_TERM_OBSERVATION:'SHORT TERM OBSERVATION'}[state.stage]||state.stage;
-  $('#domainLabel').textContent=domainLabel[q.domain]||q.domain||'';$('#questionCount').textContent=`${state.index+1} / ${list.length}`;$('#progressFill').style.width=`${((state.index+1)/list.length)*100}%`;$('#questionText').textContent=q.text;$('#timeRange').textContent=q.timeRange?(state.stage==='EVENT_TRACE'?'この出来事について':state.stage==='REFLECTION'?'今の状況について':state.stage==='SHORT_TERM_OBSERVATION'?'今日について':state.stage==='ADAPTIVE'?'対象期間：直近14日を中心に':`対象期間：${q.timeRange}`):'';
+  $('#stageLabel').textContent=stageLabel[state.stage]||state.stage;
+  $('#domainLabel').textContent=domainLabel[q.domain]||q.domain||'';$('#questionCount').textContent=`${state.index+1} / ${list.length}`;$('#progressFill').style.width=`${((state.index+1)/list.length)*100}%`;$('#questionText').textContent=q.text;
+  $('#timeRange').textContent=q.timeRange?(state.stage==='EVENT_TRACE'?'この出来事について':state.stage==='REFLECTION'?'今の状況について':state.stage==='SHORT_TERM_OBSERVATION'?'今日について':state.stage==='ADAPTIVE'?'直近14日を中心に思い出してください':state.stage==='CORE'?'直近14日について。正確な回数でなくても大丈夫です。いちばん近いものを選んでください。':`対象期間：${q.timeRange}`):'';
   const area=$('#answerArea');area.innerHTML='';const cur=state.answers[q.questionId];
   if(q.answerType==='single_choice'){
     const box=document.createElement('div');box.className='choice-list';(q.options||[]).forEach(o=>{const b=document.createElement('button');b.className=`choice ${cur===o.value?'selected':''}`;b.type='button';const code=(state.stage==='CORE'&&/^[0-4]$/.test(String(o.value)))?`<span>${o.value}</span>`:'';b.innerHTML=`${code}<b>${o.label}</b>`;b.onclick=()=>{state.answers[q.questionId]=o.value;state.index++;persist();renderQuestion();};box.appendChild(b);});area.appendChild(box);
@@ -69,11 +71,11 @@ function renderEventCheck(){show('event');$('#eventYes').onclick=()=>{state.even
 
 function makePacket(){const p=buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,SHORT_TERM_OBSERVATION},{questionDbVersion:QUESTION_DB_VERSION,packetVersion:PACKET_VERSION});p.userId=state.userId;p.eventTraceUsed=state.eventTraceUsed;p.adaptiveQuestionIds=[...state.adaptiveQuestionIds];p.inferenceContract=INFERENCE_CONTRACT;p.canon=LRA_CANON;p.previousAnalyses=history().filter(x=>x.userId===state.userId&&x.analysis&&!(x.lraId===state.lraId&&Number(x.analysisCount)===Number(state.analysisCount))).map(x=>({lraId:x.lraId,analysisCount:x.analysisCount,savedAt:x.savedAt,analysis:x.analysis}));return p;}
 function renderReview(){
-  show('review');const adaptive=state.adaptiveQuestionIds.map(id=>ADAPTIVE.find(q=>q.questionId===id)).filter(Boolean);const hasShort=SHORT_TERM_OBSERVATION.some(q=>state.answers[q.questionId]!==undefined);const counts=[['CORE',CORE],['ADAPTIVE',adaptive],['EVENT TRACE',state.eventTraceUsed?EVENT_TRACE:[]],['REFLECTION',REFLECTION],['SHORT TERM',hasShort?SHORT_TERM_OBSERVATION:[]]];$('#reviewGrid').innerHTML=counts.filter(([,list])=>list.length).map(([label,list])=>`<div><span>${label}</span><strong>${list.filter(q=>state.answers[q.questionId]!==undefined).length} / ${list.length}</strong></div>`).join('');
+  show('review');const adaptive=state.adaptiveQuestionIds.map(id=>ADAPTIVE.find(q=>q.questionId===id)).filter(Boolean);const hasShort=SHORT_TERM_OBSERVATION.some(q=>state.answers[q.questionId]!==undefined);const counts=[['基本質問',CORE],['追加質問',adaptive],['出来事について',state.eventTraceUsed?EVENT_TRACE:[]],['振り返り',REFLECTION],['短期チェック',hasShort?SHORT_TERM_OBSERVATION:[]]];$('#reviewGrid').innerHTML=counts.filter(([,list])=>list.length).map(([label,list])=>`<div><span>${label}</span><strong>${list.filter(q=>state.answers[q.questionId]!==undefined).length} / ${list.length}</strong></div>`).join('');
   $('#submitBtn').onclick=()=>{state.outputId=`OUT-${dateStamp()}-${randomHex(4)}`;state.analysisPacket=makePacket();state.analysis=null;state.stage='COMPLETE';state.status=state.analysisCount>1?'再分析待ち':'分析待ち';persist();saveHistory();renderDone();};
 }
-function renderDone(){show('done');$('#doneId').textContent=state.lraId;$('#doneStatus').textContent=state.status;const h=$('[data-view="done"] h2');const p=$('[data-view="done"] .lead');if(h)h.textContent='回答の受付が完了しました。';if(p)p.textContent='回答内容はLRA分析正本に従う分析パケットとして保存されています。';$('#resultBtn').onclick=renderResult;}
-function renderResult(){show('result');$('#resultStatus').textContent=state.status;const box=$('#resultBody');if(!state.analysis){box.innerHTML='<section class="result-section"><span>STATUS</span><p>分析パケット生成済み。最終解析・複数仮説・因果推論・CHAIN/LOOP判定・確信度・レバレッジ・介入順位はWeb側で確定せず、LRA外部推論と人間レビューで確定します。</p></section>';return;}const order=[['currentStructure','現在の生活構造'],['bottleneck','最大ボトルネック'],['chainLoop','CHAIN/LOOP'],['hypotheses','主要仮説'],['evidence','根拠'],['counterUncertainty','反証・不確実性'],['functionalParts','機能している部分'],['protect','保護対象'],['resources','資源'],['leverage','レバレッジポイント'],['interventions','介入候補'],['topPriority','最優先候補'],['confidence','確信度'],['additionalObservation','必要時追加観測']];box.innerHTML=order.filter(([k])=>state.analysis[k]!==undefined).map(([k,l])=>`<section class="result-section"><span>${l}</span><p>${escapeHtml(typeof state.analysis[k]==='object'?JSON.stringify(state.analysis[k],null,2):state.analysis[k])}</p></section>`).join('');}
+function renderDone(){show('done');$('#doneId').textContent=state.lraId;$('#doneStatus').textContent=state.status;const h=$('[data-view="done"] h2');const p=$('[data-view="done"] .lead');if(h)h.textContent='回答を受け付けました。';if(p)p.textContent='回答内容を確認したうえで、分析を進めます。';$('#resultBtn').onclick=renderResult;}
+function renderResult(){show('result');$('#resultStatus').textContent=state.status;const box=$('#resultBody');if(!state.analysis){box.innerHTML='<section class="result-section"><span>現在の状態</span><p>現在、回答内容を確認・分析しています。結果がまとまり次第、マイページから確認できます。</p></section>';return;}const order=[['currentStructure','現在の生活構造'],['bottleneck','最大ボトルネック'],['chainLoop','CHAIN/LOOP'],['hypotheses','主要仮説'],['evidence','根拠'],['counterUncertainty','反証・不確実性'],['functionalParts','機能している部分'],['protect','保護対象'],['resources','資源'],['leverage','レバレッジポイント'],['interventions','介入候補'],['topPriority','最優先候補'],['confidence','確信度'],['additionalObservation','必要時追加観測']];box.innerHTML=order.filter(([k])=>state.analysis[k]!==undefined).map(([k,l])=>`<section class="result-section"><span>${l}</span><p>${escapeHtml(typeof state.analysis[k]==='object'?JSON.stringify(state.analysis[k],null,2):state.analysis[k])}</p></section>`).join('');}
 function renderState(){if(state.stage==='INTRO')renderIntro();else if(['CORE','ADAPTIVE','EVENT_TRACE','REFLECTION','SHORT_TERM_OBSERVATION'].includes(state.stage))renderQuestion();else if(state.stage==='EVENT_CHECK')renderEventCheck();else if(state.stage==='REVIEW')renderReview();else if(state.stage==='COMPLETE')renderDone();else show('home');}
 function startShortTermObservation(){
   if(!state.analysis){alert('確定した分析結果を読み込んでから短期観測を開始してください。');return;}
