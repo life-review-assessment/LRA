@@ -77,14 +77,43 @@ function renderReview(){
 function renderDone(){show('done');$('#doneId').textContent=state.lraId;$('#doneStatus').textContent=state.status==='再分析待ち'?'再分析を受け付けました':'分析を進めています';$('#resultBtn').onclick=renderResult;}
 function renderResult(){show('result');$('#resultStatus').textContent=state.status==='再分析待ち'?'再分析を進めています':state.status==='分析待ち'?'分析を進めています':state.status;const box=$('#resultBody');if(!state.analysis){box.innerHTML='<section class="result-section"><span>現在の状態</span><p>現在、回答内容を確認・分析しています。結果がまとまり次第、マイページから確認できます。</p></section>';return;}const order=[['currentStructure','現在の生活構造'],['bottleneck','今いちばん影響が大きい部分'],['chainLoop','今の状態が続いている流れ'],['hypotheses','考えられること'],['evidence','そう考える理由'],['counterUncertainty','まだ分からないこと'],['functionalParts','今うまく機能している部分'],['protect','守りたいもの'],['resources','使える支え・資源'],['leverage','変化につながりやすいポイント'],['interventions','試せること'],['topPriority','まず試す候補'],['confidence','見立ての確かさ'],['additionalObservation','追加で確認したいこと']];box.innerHTML=order.filter(([k])=>state.analysis[k]!==undefined).map(([k,l])=>`<section class="result-section"><span>${l}</span><p>${escapeHtml(typeof state.analysis[k]==='object'?JSON.stringify(state.analysis[k],null,2):state.analysis[k])}</p></section>`).join('');}
 function renderState(){if(state.stage==='INTRO')renderIntro();else if(['CORE','ADAPTIVE','EVENT_TRACE','REFLECTION','SHORT_TERM_OBSERVATION'].includes(state.stage))renderQuestion();else if(state.stage==='EVENT_CHECK')renderEventCheck();else if(state.stage==='REVIEW')renderReview();else if(state.stage==='COMPLETE')renderDone();else show('home');}
+function normalizeContinuation(context={}){
+  const currentUser=getUserId();
+  const requestedUser=String(context.userId||context.user_id||currentUser||'');
+  const lraId=String(context.lraId||context.lra_id||'');
+  const analysisCount=Math.max(1,Number(context.analysisCount??context.analysis_count??1)||1);
+  if(!currentUser||requestedUser!==currentUser||!/^LRA-\d{8}-[A-F0-9]{8,32}$/.test(lraId))return null;
+  let answers=context.answers&&typeof context.answers==='object'?context.answers:null;
+  let planCode=String(context.planCode||context.plan_code||'');
+  let eventTraceUsed=typeof context.eventTraceUsed==='boolean'?context.eventTraceUsed:(typeof context.event_trace_used==='boolean'?context.event_trace_used:null);
+  let adaptiveQuestionIds=Array.isArray(context.adaptiveQuestionIds)?context.adaptiveQuestionIds:(Array.isArray(context.adaptive_question_ids)?context.adaptive_question_ids:null);
+  if(!answers&&state.userId===currentUser&&state.lraId===lraId&&Number(state.analysisCount||1)===analysisCount&&state.answers&&typeof state.answers==='object'){
+    answers=state.answers;planCode=planCode||state.planCode;eventTraceUsed=eventTraceUsed??state.eventTraceUsed;adaptiveQuestionIds=adaptiveQuestionIds||state.adaptiveQuestionIds;
+  }
+  if(!answers){
+    const row=history().find(x=>x.userId===currentUser&&x.lraId===lraId&&Number(x.analysisCount||1)===analysisCount);
+    const packet=row?.analysisPacket;
+    if(packet?.answers&&typeof packet.answers==='object'){
+      answers=packet.answers;planCode=planCode||packet.planCode||packet.planId||row.planCode;eventTraceUsed=eventTraceUsed??packet.eventTraceUsed;adaptiveQuestionIds=adaptiveQuestionIds||packet.adaptiveQuestionIds;
+    }
+  }
+  if(!answers)return null;
+  return{userId:currentUser,lraId,analysisCount,planCode:planCode||'FREE',eventTraceUsed,adaptiveQuestionIds:Array.isArray(adaptiveQuestionIds)?[...adaptiveQuestionIds]:[],answers:structuredClone(answers)};
+}
+function startShortTermObservationFromResult(context){
+  const source=normalizeContinuation(context);
+  if(!source){alert('この結果から短期チェックを開始するための回答データを確認できませんでした。マイページで最新状態を確認して、もう一度お試しください。');return false;}
+  for(const q of SHORT_TERM_OBSERVATION)delete source.answers[q.questionId];
+  state={userId:source.userId,lraId:source.lraId,analysisCount:source.analysisCount+1,planCode:source.planCode,outputId:null,stage:'SHORT_TERM_OBSERVATION',index:0,answers:source.answers,adaptiveQuestionIds:source.adaptiveQuestionIds,eventTraceUsed:source.eventTraceUsed,savedAt:null,status:'短期観測中',analysisPacket:null,analysis:null};
+  persist();renderQuestion();return true;
+}
 function startShortTermObservation(){
-  if(!state.analysis){alert('結果が確認できるようになってから、短期チェックを開始できます。');return;}
+  if(!state.analysis){alert('結果が確認できるようになってから、短期チェックを開始できます。');return false;}
   saveHistory();
-  for(const q of SHORT_TERM_OBSERVATION)delete state.answers[q.questionId];
-  state.analysisCount=Number(state.analysisCount||1)+1;state.outputId=null;state.analysisPacket=null;state.analysis=null;state.stage='SHORT_TERM_OBSERVATION';state.index=0;state.status='短期観測中';persist();renderQuestion();
+  return startShortTermObservationFromResult({userId:state.userId,lraId:state.lraId,analysisCount:state.analysisCount,planCode:state.planCode,eventTraceUsed:state.eventTraceUsed,adaptiveQuestionIds:state.adaptiveQuestionIds,answers:state.answers});
 }
 
-window.LRA_RUNTIME=Object.freeze({version:'LRA-WEB-OBSERVATION-1.1',role:'OBSERVATION_DEVICE_ONLY',getState:()=>structuredClone(state),getAnalysisPacket:()=>state.analysisPacket?structuredClone(state.analysisPacket):null,getHistory:()=>structuredClone(history()),resume:renderState,startShortTermObservation,applyReviewedAnalysis:(analysis)=>{state.analysis=structuredClone(analysis);state.status='分析結果確定';persist();saveHistory();renderResult();}});
+window.LRA_RUNTIME=Object.freeze({version:'LRA-WEB-OBSERVATION-1.2',role:'OBSERVATION_DEVICE_ONLY',getState:()=>structuredClone(state),getAnalysisPacket:()=>state.analysisPacket?structuredClone(state.analysisPacket):null,getHistory:()=>structuredClone(history()),resume:renderState,startShortTermObservation,startShortTermObservationFromResult,applyReviewedAnalysis:(analysis)=>{state.analysis=structuredClone(analysis);state.status='分析結果確定';persist();saveHistory();renderResult();}});
 
 $('#plansBtn').onclick=()=>document.getElementById('pricing')?.scrollIntoView({behavior:'smooth',block:'start'});
 if($('#homeStartBtn'))$('#homeStartBtn').onclick=()=>beginPlan('FREE');
