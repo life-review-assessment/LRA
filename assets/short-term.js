@@ -1,10 +1,10 @@
-import { QUESTION_DB_VERSION } from './questions.js';
+import { QUESTION_DB_VERSION } from './questions.js?v=20261009-ja1';
 
 const S=[
-  ['LRA-STO-01','今日、状態や負荷が最も動いた場面は何でしたか？'],
-  ['LRA-STO-02','その直前に何がありましたか？'],
-  ['LRA-STO-03','その後、何をしましたか？'],
-  ['LRA-STO-04','回復・悪化に影響した条件があれば書いてください。']
+  ['LRA-STO-01','今日、気分・体調・負担などが一番変わったのは、どんな場面でしたか？'],
+  ['LRA-STO-02','その直前に、何がありましたか？'],
+  ['LRA-STO-03','そのあと、自分は何をしましたか？'],
+  ['LRA-STO-04','そのあと、少し楽になったことや、反対につらくなったことに影響した条件があれば書いてください。']
 ];
 
 export const SHORT_TERM_OBSERVATION=S.map(([questionId,text])=>({
