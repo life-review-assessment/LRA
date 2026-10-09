@@ -1,13 +1,23 @@
 {
+  "id": "/LRA/",
   "name": "LRA - Life Review Assessment",
   "short_name": "LRA",
-  "start_url": "./",
-  "scope": "./",
+  "description": "今の暮らしを整理し、これから何を優先するかを考えるための意思決定支援サービス。",
+  "start_url": "/LRA/",
+  "scope": "/LRA/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#f4f2ed",
   "theme_color": "#f4f2ed",
   "lang": "ja",
+  "orientation": "portrait-primary",
   "icons": [
+    {
+      "src": "./lra-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
     {
       "src": "./lra-brand.png",
       "sizes": "any",
