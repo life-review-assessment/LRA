@@ -67,15 +67,9 @@
   <section data-view="home" id="pricing" class="site-section pricing-section">
     <div class="site-wrap">
       <p class="site-kicker">PLAN</p>
-      <div class="pricing-head">
-        <h2>自分に合うプランを選ぶ。</h2>
-        <p>まず試したい方から、継続して変化を追いたい方まで、必要な範囲に合わせて選べます。</p>
-      </div>
+      <div class="pricing-head"><h2>自分に合うプランを選ぶ。</h2><p>まず試したい方から、継続して変化を追いたい方まで、必要な範囲に合わせて選べます。</p></div>
       <div id="homePlanGrid" class="home-pricing"></div>
-      <div class="home-options">
-        <div><p class="site-kicker">OPTIONS</p><h3>追加オプション</h3></div>
-        <div id="homeOptionGrid" class="home-option-rows"></div>
-      </div>
+      <div class="home-options"><div><p class="site-kicker">OPTIONS</p><h3>追加オプション</h3></div><div id="homeOptionGrid" class="home-option-rows"></div></div>
     </div>
   </section>
 
@@ -93,86 +87,34 @@
   </section>
 
   <section data-view="home" class="site-section home-cta-section">
-    <div class="site-wrap home-cta">
-      <div><p class="site-kicker">START LRA</p><h2>今の暮らしを、<br>少し整理してみる。</h2></div>
-      <button class="home-start" id="homeStartBtn">無料で試してみる <span>↗</span></button>
-    </div>
+    <div class="site-wrap home-cta"><div><p class="site-kicker">START LRA</p><h2>今の暮らしを、<br>少し整理してみる。</h2></div><button class="home-start" id="homeStartBtn">無料で試してみる <span>↗</span></button></div>
   </section>
 
   <div class="app-wrap">
-    <section data-view="plans" class="hidden">
-      <div class="eyebrow">PLAN</div>
-      <h2 class="display">必要な範囲に合わせて選べます。</h2>
-      <div id="planGrid" class="plan-grid"></div>
-      <div class="options-panel"><div class="eyebrow">OPTIONS</div><h3>追加オプション</h3><div id="optionGrid"></div></div>
-      <div class="notice">有料プランは決済導線の接続前のため、現在は無料体験のみ開始できます。表示料金は現行確定料金です。</div>
-    </section>
+    <section data-view="plans" class="hidden"><div class="eyebrow">PLAN</div><h2 class="display">必要な範囲に合わせて選べます。</h2><div id="planGrid" class="plan-grid"></div><div class="options-panel"><div class="eyebrow">OPTIONS</div><h3>追加オプション</h3><div id="optionGrid"></div></div><div class="notice">有料プランは決済導線の接続前のため、現在は無料体験のみ開始できます。表示料金は現行確定料金です。</div></section>
 
-    <section data-view="intro" class="hidden app card">
-      <div class="eyebrow">START</div>
-      <h2>まず、直近14日を振り返ります。</h2>
-      <p class="lead">最初は20問です。回答に応じて、必要な質問だけを追加します。途中の内容は自動で保存されるため、一度にすべて答える必要はありません。</p>
-      <div class="meta-line"><span>プラン</span><b id="introPlan"></b></div>
-      <div class="meta-line"><span>LRA-ID</span><b id="introId"></b></div>
-      <label class="consent"><input type="checkbox" id="consent"><span>LRAは診断や専門家による判断の代わりではなく、今の状況を整理し、これからの選択を考えるためのサービスであることを確認しました。</span></label>
-      <div class="actions"><button class="btn dark" id="startBtn">回答を始める →</button></div>
-    </section>
+    <section data-view="intro" class="hidden app card"><div class="eyebrow">START</div><h2>まず、直近14日を振り返ります。</h2><p class="lead">最初は20問です。回答に応じて、必要な質問だけを追加します。途中の内容は自動で保存されるため、一度にすべて答える必要はありません。</p><div class="meta-line"><span>プラン</span><b id="introPlan"></b></div><div class="meta-line"><span>LRA-ID</span><b id="introId"></b></div><label class="consent"><input type="checkbox" id="consent"><span>LRAは診断や専門家による判断の代わりではなく、今の状況を整理し、これからの選択を考えるためのサービスであることを確認しました。</span></label><div class="actions"><button class="btn dark" id="startBtn">回答を始める →</button></div></section>
 
-    <section data-view="assessment" class="hidden app card">
-      <div class="assessment-head"><div><div id="stageLabel" class="eyebrow"></div><b id="domainLabel"></b></div><div id="questionCount" class="micro"></div></div>
-      <div class="progress"><i id="progressFill"></i></div>
-      <div id="timeRange" class="micro"></div>
-      <h2 class="question" id="questionText"></h2>
-      <div id="answerArea"></div>
-      <div class="actions"><button class="btn" id="backBtn">← 戻る</button><button class="btn dark" id="nextBtn">次へ →</button></div>
-      <div class="sync syncState"></div>
-    </section>
+    <section data-view="assessment" class="hidden app card"><div class="assessment-head"><div><div id="stageLabel" class="eyebrow"></div><b id="domainLabel"></b></div><div id="questionCount" class="micro"></div></div><div class="progress"><i id="progressFill"></i></div><div id="timeRange" class="micro"></div><h2 class="question" id="questionText"></h2><div id="answerArea"></div><div class="actions"><button class="btn" id="backBtn">← 戻る</button><button class="btn dark" id="nextBtn">次へ →</button></div><div class="sync syncState"></div></section>
 
-    <section data-view="event" class="hidden app card">
-      <div class="eyebrow">EVENT TRACE</div>
-      <h2>今の状態に大きく影響している出来事はありますか？</h2>
-      <p class="lead">思い当たる場合だけ、その出来事の前後を確認します。答えたくない内容を無理に書く必要はありません。</p>
-      <div class="actions"><button class="btn dark" id="eventYes">ある →</button><button class="btn" id="eventNo">特にない / 今は答えない</button></div>
-      <div class="sync syncState"></div>
-    </section>
+    <section data-view="event" class="hidden app card"><div class="eyebrow">EVENT TRACE</div><h2>今の状態に大きく影響している出来事はありますか？</h2><p class="lead">思い当たる場合だけ、その出来事の前後を確認します。答えたくない内容を無理に書く必要はありません。</p><div class="actions"><button class="btn dark" id="eventYes">ある →</button><button class="btn" id="eventNo">特にない / 今は答えない</button></div><div class="sync syncState"></div></section>
 
-    <section data-view="review" class="hidden app card">
-      <div class="eyebrow">REVIEW</div>
-      <h2>回答内容を確認します。</h2>
-      <div id="reviewGrid" class="review-grid"></div>
-      <p class="lead">送信すると、回答内容からLRA分析パケットを生成します。</p>
-      <div class="actions"><button class="btn dark" id="submitBtn">この内容で送信する →</button></div>
-      <div class="sync syncState"></div>
-    </section>
+    <section data-view="review" class="hidden app card"><div class="eyebrow">REVIEW</div><h2>回答内容を確認します。</h2><div id="reviewGrid" class="review-grid"></div><p class="lead">送信すると、回答内容からLRA分析パケットを生成します。</p><div class="actions"><button class="btn dark" id="submitBtn">この内容で送信する →</button></div><div class="sync syncState"></div></section>
 
-    <section data-view="done" class="hidden app card">
-      <div class="eyebrow">RECEIVED</div>
-      <h2>回答の受付が完了しました。</h2>
-      <p class="lead">回答内容はこの端末に保存され、LRA分析用パケットが生成されています。</p>
-      <div class="meta-line"><span>LRA-ID</span><b id="doneId"></b></div>
-      <div class="meta-line"><span>状態</span><b id="doneStatus"></b></div>
-      <div class="actions"><button class="btn dark" id="resultBtn">分析状態を確認 →</button></div>
-    </section>
+    <section data-view="done" class="hidden app card"><div class="eyebrow">RECEIVED</div><h2>回答の受付が完了しました。</h2><p class="lead">回答内容はこの端末に保存され、LRA分析用パケットが生成されています。</p><div class="meta-line"><span>LRA-ID</span><b id="doneId"></b></div><div class="meta-line"><span>状態</span><b id="doneStatus"></b></div><div class="actions"><button class="btn dark" id="resultBtn">分析状態を確認 →</button><button class="btn" id="shareSubmissionBtn">回答データを共有</button></div></section>
 
-    <section data-view="result" class="hidden app card">
-      <div class="eyebrow">RESULT</div>
-      <h2>今の暮らしの整理結果</h2>
-      <div class="meta-line"><span>状態</span><b id="resultStatus"></b></div>
-      <div id="resultBody"></div>
-      <div class="actions"><button class="btn dark" id="reloadResultBtn">最新状態を確認</button><button class="btn" id="shortTermBtn">短期観測を開始</button></div>
-      <div class="sync syncState"></div>
-    </section>
+    <section data-view="result" class="hidden app card"><div class="eyebrow">RESULT</div><h2>今の暮らしの整理結果</h2><div class="meta-line"><span>状態</span><b id="resultStatus"></b></div><div id="resultBody"></div><div class="actions"><button class="btn dark" id="reloadResultBtn">最新状態を確認</button><button class="btn" id="resultImportBtn">分析結果を読み込む</button><input id="resultImportFile" type="file" accept="application/json" hidden><button class="btn" id="shortTermBtn">短期観測を開始</button></div><div id="resultImportStatus" class="sync syncState"></div></section>
   </div>
 </main>
 
-<footer class="footer">
-  <span>© LRA</span>
-  <nav><a href="./terms.html">TERMS</a><a href="./privacy.html">PRIVACY</a><a href="./legal.html">LEGAL</a></nav>
-  <span class="version">Question DB lra-question-db-1.1.0 / LRA-PACKET-1.1</span>
-</footer>
+<footer class="footer"><span>© LRA</span><nav><a href="./terms.html">TERMS</a><a href="./privacy.html">PRIVACY</a><a href="./legal.html">LEGAL</a></nav><span class="version">Question DB lra-question-db-1.1.0 / LRA-PACKET-1.1</span></footer>
 
-<script type="module" src="./assets/main-canonical.js?v=20261009-1145"></script>
-<script type="module" src="./assets/short-term-ui.js?v=20261009-1145"></script>
-<script type="module" src="./assets/pwa.js?v=20261009-1145"></script>
+<script src="./assets/account-gate.js?v=20261009-restore1"></script>
+<script type="module" src="./assets/main-canonical.js?v=20261009-restore1"></script>
+<script type="module" src="./assets/handoff-ui.js?v=20261009-restore1"></script>
+<script type="module" src="./assets/result-handoff.js?v=20261009-restore1"></script>
+<script type="module" src="./assets/short-term-ui.js?v=20261009-restore1"></script>
+<script type="module" src="./assets/startup-guard.js?v=20261009-restore1"></script>
+<script type="module" src="./assets/pwa.js?v=20261009-restore1"></script>
 </body>
 </html>
