@@ -1,8 +1,8 @@
-const CACHE='lra-static-v1.5.2';
+const CACHE='lra-static-v1.5.3';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-brand.png','./lra-icon.svg',
   './terms.html','./privacy.html','./legal.html',
-  './assets/style.css','./assets/questions.js','./assets/short-term.js',
+  './assets/style.css','./assets/logo-visible.css','./assets/questions.js','./assets/short-term.js',
   './assets/lra-canon.js','./assets/legacy-canon.js','./assets/legacy-sheet-schema.js','./assets/legacy-report-assets.js','./assets/inference-contract.js',
   './assets/main-canonical.js','./assets/account-gate.js','./assets/user-dashboard.js','./assets/startup-guard.js',
   './assets/submission-transport.js','./assets/handoff-ui.js','./assets/short-term-ui.js','./assets/pwa.js'
