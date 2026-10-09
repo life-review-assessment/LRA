@@ -40,9 +40,9 @@ function renderIntro(){show('intro');$('#introPlan').textContent=`${plan().name}
 function selectAdaptive(){
   const triggered=new Set();
   CORE.forEach(q=>{if(['3','4','U','S'].includes(state.answers[q.questionId]))q.branchTags.forEach(t=>triggered.add(t));});
-  const ranked=ADAPTIVE.map((q,order)=>{const direct=q.branchTags.filter(t=>triggered.has(t)).length;return{q,order,direct,score:direct+(q.domain==='CROSS'?0.35:0)+(q.type==='PROTECT'?0.15:0)+(q.type==='COMPARE'?0.10:0)};}).filter(x=>x.q.domain!=='CROSS'&&x.direct>0).sort((a,b)=>b.score-a.score||a.order-b.order);
+  const ranked=ADAPTIVE.map((q,order)=>({q,order,score:q.branchTags.filter(t=>triggered.has(t)).length+(q.domain==='CROSS'?0.35:0)+(q.type==='PROTECT'?0.15:0)+(q.type==='COMPARE'?0.10:0)})).filter(x=>x.score>0).sort((a,b)=>b.score-a.score||a.order-b.order);
   const out=[],counts={};
-  for(const x of ranked){if(out.length>=14)break;const d=x.q.domain;if((counts[d]||0)>=4)continue;out.push(x.q);counts[d]=(counts[d]||0)+1;}
+  for(const x of ranked){if(out.length>=14)break;const d=x.q.domain;if(d!=='CROSS'&&(counts[d]||0)>=4)continue;out.push(x.q);counts[d]=(counts[d]||0)+1;}
   for(const q of ADAPTIVE.filter(q=>q.domain==='CROSS').slice(0,3)){if(out.length>=14)break;if(!out.some(x=>x.questionId===q.questionId))out.push(q);}
   const nextIds=out.map(q=>q.questionId);
   ADAPTIVE.forEach(q=>{if(!nextIds.includes(q.questionId))delete state.answers[q.questionId];});
