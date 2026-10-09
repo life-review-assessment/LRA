@@ -1,4 +1,4 @@
-const CACHE='lra-static-v1.5.4';
+const CACHE='lra-static-v1.5.5';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-brand.png','./lra-icon.svg',
   './terms.html','./privacy.html','./legal.html',
@@ -9,7 +9,13 @@ const STATIC=[
 ];
 const FRESH=new Set(['./assets/pwa.js','./assets/logo-visible.css','./lra-brand.png']);
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting()));});
-self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
+self.addEventListener('activate',event=>{event.waitUntil((async()=>{
+  const keys=await caches.keys();
+  await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+  await self.clients.claim();
+  const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+  await Promise.all(clients.map(c=>c.navigate(c.url).catch(()=>null)));
+})());});
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET')return;
   const url=new URL(event.request.url);
@@ -17,7 +23,7 @@ self.addEventListener('fetch',event=>{
   const rel='./'+url.pathname.split('/').slice(-2).join('/');
   const root='./'+url.pathname.split('/').pop();
   if(event.request.mode==='navigate'){
-    event.respondWith(fetch(event.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));return r;}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
+    event.respondWith(fetch(event.request,{cache:'no-store'}).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));return r;}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
     return;
   }
   if(FRESH.has(rel)||FRESH.has(root)){
