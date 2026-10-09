@@ -5,15 +5,12 @@ function showOnly(view){
   window.scrollTo({top:0,behavior:'auto'});
 }
 
-async function guardStartup(){
+function guardStartup(){
   const state=window.LRA_RUNTIME?.getState?.();
   if(!state)return;
-  if(IN_PROGRESS.has(state.stage)&&!window.LRA_ACCOUNT?.authenticated){
-    const profile=await window.LRA_ACCOUNT_UI?.ensureAccount?.();
-    if(profile)window.LRA_RUNTIME?.resume?.();else showOnly('home');
-    return;
+  if((IN_PROGRESS.has(state.stage)||state.stage==='COMPLETE')&&!window.LRA_ACCOUNT?.authenticated){
+    showOnly('home');
   }
-  if(state.stage==='COMPLETE'&&!window.LRA_ACCOUNT?.authenticated)showOnly('home');
 }
 
 if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',()=>setTimeout(guardStartup,0),{once:true});
