@@ -16,6 +16,22 @@
       background:#181714!important;
       box-shadow:none!important;
     }
+
+    /* Mobile uses horizontal rhythm only: remove leftover vertical grid dividers. */
+    .home-pricing,
+    .result-preview-grid,
+    .site-steps{
+      border-left:0!important;
+      border-right:0!important;
+    }
+    .home-plan-card,
+    .result-preview-grid article,
+    .site-steps article,
+    .site-steps article+article{
+      border-left:0!important;
+      border-right:0!important;
+    }
+
     .flow-section{
       width:100%!important;
       background:#181714!important;
