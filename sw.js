@@ -1,10 +1,10 @@
-const CACHE='lra-static-v1.5.12';
+const CACHE='lra-static-v1.5.13';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-icon.svg',
   './terms.html','./privacy.html','./legal.html',
   './assets/style.css','./assets/questions.js','./assets/short-term.js',
   './assets/lra-canon.js','./assets/legacy-canon.js','./assets/legacy-sheet-schema.js','./assets/legacy-report-assets.js','./assets/inference-contract.js',
-  './assets/main-canonical.js','./assets/short-term-ui.js','./assets/pwa.js'
+  './assets/account-gate.js','./assets/main-canonical.js','./assets/handoff-ui.js','./assets/result-handoff.js','./assets/short-term-ui.js','./assets/startup-guard.js','./assets/pwa.js'
 ];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(c=>c.addAll(STATIC)).then(()=>self.skipWaiting()));});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
