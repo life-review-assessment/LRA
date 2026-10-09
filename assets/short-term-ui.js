@@ -1,3 +1,5 @@
+import { getLraClientKey } from './submission-transport.js?v=20261009-server1';
+
 const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
 const IN_PROGRESS=new Set(['CORE','ADAPTIVE','EVENT_CHECK','EVENT_TRACE','REFLECTION','REVIEW','SHORT_TERM_OBSERVATION']);
 
@@ -30,9 +32,10 @@ function ensureReportAction(){
       const s=stateNow();
       if(s&&IN_PROGRESS.has(s.stage)){alert('回答途中のLRAがあります。先にその回答を完了してください。');return;}
       const ctx=reportContext();if(!ctx)return;
+      const clientKey=getLraClientKey(ctx.lra_id);if(!clientKey){alert('短期チェックを開始できませんでした。最新状態を確認して、もう一度お試しください。');return;}
       button.disabled=true;button.textContent='確認しています…';
       try{
-        const data=await api({action:'continuation',...ctx});
+        const data=await api({action:'continuation',...ctx,client_key:clientKey});
         const started=window.LRA_RUNTIME?.startShortTermObservationFromResult?.(data.continuation);
         if(started!==true)throw new Error('START_FAILED');
       }catch(e){
