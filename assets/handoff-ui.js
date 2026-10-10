@@ -16,6 +16,13 @@ function showRetry(){
   const box=actions();if(!box)return;
   const btn=document.createElement('button');btn.type='button';btn.className='btn dark';btn.id='lraRetrySubmitBtn';btn.textContent='もう一度送信する →';btn.addEventListener('click',()=>sendNow());box.appendChild(btn);
 }
+function errorMessage(e){
+  if(e?.message==='USER_LOGIN_REQUIRED')return'ログイン状態を確認して、もう一度送信してください。';
+  if(e?.message==='PREVIOUS_RESULT_NOT_READY')return'前回の結果が確定してから、再分析を送信できます。マイページで最新状態を確認してください。';
+  if(e?.message==='INVALID_ANALYSIS_SEQUENCE'||e?.message==='OUTPUT_ID_CONFLICT')return'送信内容と現在の履歴が一致しません。マイページで最新状態を確認してから、もう一度お試しください。';
+  if(e?.message==='CLIENT_KEY_MISMATCH')return'このLRAの端末情報を確認できませんでした。マイページの最新結果から、もう一度短期チェックを開始してください。';
+  return'回答を送信できませんでした。通信状態を確認して、もう一度お試しください。';
+}
 
 async function sendNow(){
   const packet=packetNow();
@@ -33,7 +40,7 @@ async function sendNow(){
   }catch(e){
     console.error(e);
     setFailedCopy();
-    setMessage(e?.message==='USER_LOGIN_REQUIRED'?'ログイン状態を確認して、もう一度送信してください。':'回答を送信できませんでした。通信状態を確認して、もう一度お試しください。',true);
+    setMessage(errorMessage(e),true);
     const s=document.getElementById('doneStatus');if(s)s.textContent='送信できませんでした';
     showRetry();
     return false;
