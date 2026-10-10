@@ -19,6 +19,7 @@ function showRetry(){
 function errorMessage(e){
   if(e?.message==='USER_LOGIN_REQUIRED')return'ログイン状態を確認して、もう一度送信してください。';
   if(e?.message==='PREVIOUS_RESULT_NOT_READY')return'前回の結果が確定してから、再分析を送信できます。マイページで最新状態を確認してください。';
+  if(e?.message==='PREVIOUS_ANALYSIS_NOT_READY')return'前回の分析結果の保存を確認してから、再分析を送信できます。最新状態を確認してください。';
   if(e?.message==='INVALID_ANALYSIS_SEQUENCE'||e?.message==='OUTPUT_ID_CONFLICT')return'送信内容と現在の履歴が一致しません。マイページで最新状態を確認してから、もう一度お試しください。';
   if(e?.message==='CLIENT_KEY_MISMATCH')return'このLRAの端末情報を確認できませんでした。マイページの最新結果から、もう一度短期チェックを開始してください。';
   return'回答を送信できませんでした。通信状態を確認して、もう一度お試しください。';
