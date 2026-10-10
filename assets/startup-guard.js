@@ -8,6 +8,9 @@ function showOnly(view){
 function profileUserId(profile){return profile?.userId||profile?.user_id||'';}
 function sameOwner(state,profile){return !!(state?.userId&&profileUserId(profile)&&state.userId===profileUserId(profile));}
 
+const initialState=window.LRA_RUNTIME?.getState?.();
+if(initialState&&(IN_PROGRESS.has(initialState.stage)||initialState.stage==='COMPLETE'))showOnly('home');
+
 async function savedSessionProfile(){
   if(window.LRA_ACCOUNT?.authenticated)return window.LRA_ACCOUNT.profile||null;
   const token=window.LRA_ACCOUNT_UI?.getToken?.()||'';
@@ -35,5 +38,5 @@ async function guardStartup(){
   }
 }
 
-if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',()=>setTimeout(guardStartup,0),{once:true});
-else setTimeout(guardStartup,0);
+if(document.readyState==='loading')window.addEventListener('DOMContentLoaded',guardStartup,{once:true});
+else guardStartup();
