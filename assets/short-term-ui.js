@@ -2,6 +2,7 @@ import { getLraClientKey } from './submission-transport.js?v=20261009-server1';
 
 const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
 const IN_PROGRESS=new Set(['CORE','ADAPTIVE','EVENT_CHECK','EVENT_TRACE','REFLECTION','REVIEW','SHORT_TERM_OBSERVATION']);
+const STATE_KEY='lra.state.1.3';
 let eligibilityKey='';
 let eligibility=false;
 let eligibilityPending=false;
@@ -78,6 +79,16 @@ function ensureReportAction(){
 
 const btn=document.getElementById('shortTermBtn');
 if(btn)btn.addEventListener('click',()=>window.LRA_RUNTIME?.startShortTermObservation?.());
+
+const back=document.getElementById('backBtn');
+if(back)back.addEventListener('click',e=>{
+  const s=stateNow();
+  if(s?.stage!=='SHORT_TERM_OBSERVATION'||Number(s.index||0)!==0)return;
+  e.preventDefault();e.stopImmediatePropagation();
+  if(!window.confirm('短期チェックを中断してマイページに戻りますか？'))return;
+  try{localStorage.removeItem(STATE_KEY);}catch{}
+  window.location.reload();
+},true);
 
 const reportView=document.querySelector('[data-view="userReport"]');
 if(reportView){
