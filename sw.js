@@ -1,4 +1,5 @@
-const CACHE='lra-static-v1.5.46';
+const CACHE='lra-static-v1.5.47';
+const REFRESH_MARK='1547';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg',
   './terms.html','./privacy.html','./legal.html',
@@ -14,6 +15,16 @@ self.addEventListener('activate',event=>{
     const keys=await caches.keys();
     await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
     await self.clients.claim();
+    const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+    await Promise.all(windows.map(async client=>{
+      try{
+        const u=new URL(client.url);
+        if(u.origin!==self.location.origin)return;
+        if(u.searchParams.get('lra_sw')===REFRESH_MARK)return;
+        u.searchParams.set('lra_sw',REFRESH_MARK);
+        await client.navigate(u.href);
+      }catch{}
+    }));
   })());
 });
 self.addEventListener('fetch',event=>{
