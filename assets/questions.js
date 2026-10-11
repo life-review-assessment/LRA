@@ -1,5 +1,5 @@
-export const QUESTION_DB_VERSION="lra-question-db-1.1.3";
-export const PACKET_VERSION="LRA-PACKET-1.1";
+export const QUESTION_DB_VERSION="lra-question-db-2.0.0";
+export const PACKET_VERSION="LRA-PACKET-2.0";
 
 export const PLANS=[
   {code:"FREE",name:"無料体験",price:0,category:"まず試す"},
@@ -15,118 +15,137 @@ export const OPTIONS=[
   {name:"特定テーマ分析",price:"2,980円"}
 ];
 
-const SCALE=[
-  {value:"0",label:"一度もなかった"},
-  {value:"1",label:"1回あった"},
-  {value:"2",label:"2〜3回あった"},
-  {value:"3",label:"4回以上あった"},
-  {value:"4",label:"ほぼ毎日あった"},
-  {value:"U",label:"わからない"},
-  {value:"S",label:"答えたくない"}
+const UNKNOWN={value:"U",label:"よくわからない",responseState:"UNKNOWN",exclusive:true};
+const PREFER_NOT={value:"S",label:"答えたくない",responseState:"PREFER_NOT",exclusive:true};
+const special=(value,label,responseState)=>({value,label,responseState});
+
+const CORE_FREQ=[
+  {value:"0",label:"まったくなかった",routingSignal:0},
+  {value:"1",label:"めったになかった",routingSignal:1},
+  {value:"2",label:"ときどきあった",routingSignal:2},
+  {value:"3",label:"よくあった",routingSignal:3},
+  {value:"4",label:"ほぼいつもあった",routingSignal:4},
+  UNKNOWN,PREFER_NOT
 ];
 
-const C=[
-  ["LRA-CORE-ACTION-01","ACTION","やる必要があることに、なかなか取りかかれないことがありましたか？",["start_block"]],
-  ["LRA-CORE-ACTION-02","ACTION","やろうと思っていたことを後回しにしたり、途中でやめたりしたことがありましたか？",["delay_repeat"]],
-  ["LRA-CORE-ACTION-03","ACTION","何から始めるか決められず、動けなくなることがありましたか？",["action_priority"]],
-  ["LRA-CORE-ACTION-04","ACTION","疲れていたり負担が大きかったりしても、やる量を減らせず無理をしたことがありましたか？",["overdo"]],
-  ["LRA-CORE-JUDGMENT-01","JUDGMENT","選ぶものや考えることが多すぎて、決められなくなることがありましたか？",["information_load"]],
-  ["LRA-CORE-JUDGMENT-02","JUDGMENT","何を基準に決めるか迷い、いったん決めてもやり直すことがありましたか？",["criteria_instability"]],
-  ["LRA-CORE-JUDGMENT-03","JUDGMENT","周りの人の意見や期待が気になって、自分の考えが揺れることがありましたか？",["external_influence"]],
-  ["LRA-CORE-JUDGMENT-04","JUDGMENT","決めたあとも「これでよかったのか」と考え続け、次に進みにくいことがありましたか？",["rumination"]],
-  ["LRA-CORE-ENVIRONMENT-01","ENVIRONMENT","自分ではどうにもできない事情で、予定どおりに進められないことがありましたか？",["external_constraint"]],
-  ["LRA-CORE-ENVIRONMENT-02","ENVIRONMENT","自分のために使える時間や、落ち着いて過ごせる場所が足りないと感じることがありましたか？",["time_space_constraint"]],
-  ["LRA-CORE-ENVIRONMENT-03","ENVIRONMENT","お金・仕事・家庭・人間関係などの事情で、やりたいことや選べることが限られることがありましたか？",["life_constraint"]],
-  ["LRA-CORE-ENVIRONMENT-04","ENVIRONMENT","誰かに相談したり助けを頼んだりできず、一人で抱え込むことがありましたか？",["isolation"]],
-  ["LRA-CORE-EMOTION-01","EMOTION","不安、イライラ、落ち込みなどの気持ちで、やることや決めることに影響が出たことがありましたか？",["emotion_impact"]],
-  ["LRA-CORE-EMOTION-02","EMOTION","気持ちを我慢したり抑えたりし続けることが、つらいと感じることがありましたか？",["suppression"]],
-  ["LRA-CORE-EMOTION-03","EMOTION","自分でもなぜそう感じるのか分からず、気持ちを整理しにくいことがありましたか？",["emotion_unclear"]],
-  ["LRA-CORE-EMOTION-04","EMOTION","安心したり、楽しい・満足だと感じたりする時間が、ほとんどないと感じることがありましたか？",["positive_low"]],
-  ["LRA-CORE-RECOVERY-01","RECOVERY","休んでも、疲れやつらさが残ることがありましたか？",["slow_recovery"]],
-  ["LRA-CORE-RECOVERY-02","RECOVERY","休みたいと思っても、休む時間を取れないことがありましたか？",["rest_shortage"]],
-  ["LRA-CORE-RECOVERY-03","RECOVERY","いったん休んだり止めたりしたあと、もう一度始めるのが大変だと感じることがありましたか？",["restart_cost"]],
-  ["LRA-CORE-RECOVERY-04","RECOVERY","疲れや負担が、次の日以降まで残ることがありましたか？",["carry_over"]]
+const CORE_POSITIVE=[
+  {value:"0",label:"まったくなかった",routingSignal:4},
+  {value:"1",label:"ほとんどなかった",routingSignal:3},
+  {value:"2",label:"少しはあった",routingSignal:2},
+  {value:"3",label:"ある程度あった",routingSignal:1},
+  {value:"4",label:"十分にあった",routingSignal:0},
+  UNKNOWN,PREFER_NOT
 ];
 
-export const CORE=C.map(([questionId,domain,text,branchTags])=>({questionId,stage:'CORE',type:'FACT',domain,timeRange:'直近14日',text,answerType:'single_choice',options:SCALE,branchTags,required:true,version:QUESTION_DB_VERSION}));
-
-const A=[
-  ["LRA-ADP-ACTION-01","EVENT","ACTION","最近、やろうとしていたのに動けなくなった場面があれば、どんな時だったか短く書いてください。","text_short",null,["start_block","delay_repeat","action_priority"]],
-  ["LRA-ADP-ACTION-02","FACT","ACTION","やろうとしていたのに動けなかったとき、その理由として近いものを選んでください。いくつでも選べます。","multi_choice",[
-    {value:"time",label:"時間が足りなかった"},
-    {value:"fatigue",label:"疲れていた・消耗していた"},
-    {value:"uncertainty",label:"やり方や、どう決めればいいか分からなかった"},
-    {value:"external",label:"自分以外の事情や、相手の都合が影響した"},
-    {value:"emotion",label:"不安・抵抗感など、気持ちの負担があった"},
-    {value:"money",label:"お金の都合があった"},
-    {value:"other",label:"その他"},
-    {value:"unknown",label:"わからない"}
-  ],["start_block","delay_repeat","action_priority"]],
-  ["LRA-ADP-ACTION-03","COMPARE","ACTION","動けた日と動きにくかった日があれば、何が違っていましたか？","text_short",null,["start_block","delay_repeat"]],
-  ["LRA-ADP-ACTION-04","COUNTERFACTUAL","ACTION","動きにくくしているものを一つだけなくせるとしたら、何がなくなると始めやすそうですか？","text_short",null,["start_block","action_priority","overdo"]],
-  ["LRA-ADP-ACTION-05","PROTECT","ACTION","今やっていることの中で、少し減らしてもあまり困らなそうなことはありますか？","text_short",null,["overdo","delay_repeat"]],
-  ["LRA-ADP-JUDGMENT-01","EVENT","JUDGMENT","最近、なかなか決められなかった場面では、何を決めようとしていましたか？","text_short",null,["information_load","criteria_instability","rumination"]],
-  ["LRA-ADP-JUDGMENT-02","FACT","JUDGMENT","なかなか決められなかったとき、「ここだけは譲れない」と思っていたことは何ですか？","text_short",null,["criteria_instability","external_influence","rumination"]],
-  ["LRA-ADP-JUDGMENT-03","COMPARE","JUDGMENT","似たようなことでも、比較的すぐ決められた場面があれば、何が違っていましたか？","text_short",null,["information_load","criteria_instability"]],
-  ["LRA-ADP-JUDGMENT-04","COUNTERFACTUAL","JUDGMENT","考える材料を一つだけ減らすとしたら、何を減らすと決めやすくなりそうですか？","text_short",null,["information_load","rumination"]],
-  ["LRA-ADP-JUDGMENT-05","PROTECT","JUDGMENT","早めに決めるとしても、これだけは大切にしたいと思うことは何ですか？","text_short",null,["external_influence","criteria_instability"]],
-  ["LRA-ADP-ENVIRONMENT-01","EVENT","ENVIRONMENT","最近、自分では変えにくい事情によって、予定どおりにいかなかった場面があれば書いてください。","text_short",null,["external_constraint","life_constraint"]],
-  ["LRA-ADP-ENVIRONMENT-02","FACT","ENVIRONMENT","予定どおりにいかなかった事情の中で、自分で変えられそうなことと、変えにくいことはそれぞれ何ですか？","text_long",null,["external_constraint","life_constraint"]],
-  ["LRA-ADP-ENVIRONMENT-03","COMPARE","ENVIRONMENT","同じような状況でも、あまり負担を感じなかった場面があれば、何が違っていましたか？","text_short",null,["time_space_constraint","life_constraint"]],
-  ["LRA-ADP-ENVIRONMENT-04","COUNTERFACTUAL","ENVIRONMENT","周りの状況を一つだけ変えられるとしたら、何を変えると今の負担が一番軽くなりそうですか？","text_short",null,["external_constraint","time_space_constraint","life_constraint"]],
-  ["LRA-ADP-ENVIRONMENT-05","PROTECT","ENVIRONMENT","今の生活の中で、変えずに残したい人・場所・習慣・支えはありますか？","text_short",null,["isolation","life_constraint","time_space_constraint"]],
-  ["LRA-ADP-EMOTION-01","EVENT","EMOTION","最近、気持ちの変化が、行動や決め方に大きく影響した場面があれば書いてください。","text_short",null,["emotion_impact","suppression"]],
-  ["LRA-ADP-EMOTION-02","FACT","EMOTION","気持ちが大きく動いた場面で、最初に変わったのはどれに近いですか？","single_choice",[
-    {value:"body",label:"体の状態や感覚"},
-    {value:"thought",label:"考え方や頭に浮かんだこと"},
-    {value:"action",label:"自分の行動"},
-    {value:"unknown",label:"はっきりわからない"}
-  ],["emotion_impact","emotion_unclear"]],
-  ["LRA-ADP-EMOTION-03","COMPARE","EMOTION","気持ちが大きく揺れたときでも、比較的いつも通り動けた場面があれば、何が違っていましたか？","text_short",null,["emotion_impact","suppression"]],
-  ["LRA-ADP-EMOTION-04","COUNTERFACTUAL","EMOTION","気持ちそのものは変わらなくても、その影響を少なくするために、何があるとよさそうですか？","text_short",null,["emotion_impact","emotion_unclear"]],
-  ["LRA-ADP-EMOTION-05","PROTECT","EMOTION","今の生活で、少しでも安心できたり、楽しいと感じたり、落ち着けたりするものは何ですか？","text_short",null,["positive_low","suppression"]],
-  ["LRA-ADP-RECOVERY-01","EVENT","RECOVERY","最近、休んだのに十分に回復した感じがしなかった場面があれば書いてください。","text_short",null,["slow_recovery","carry_over"]],
-  ["LRA-ADP-RECOVERY-02","FACT","RECOVERY","休む前に、どんな疲れや負担が大きかったですか？ 近いものをいくつでも選んでください。","multi_choice",[
-    {value:"physical",label:"体の疲れ・負担"},
-    {value:"mental",label:"考え続けることによる疲れ"},
-    {value:"emotion",label:"気持ちの疲れ・負担"},
-    {value:"social",label:"人とのやり取りによる疲れ"},
-    {value:"time",label:"時間に余裕がないことによる負担"},
-    {value:"other",label:"その他"},
-    {value:"unknown",label:"わからない"}
-  ],["slow_recovery","carry_over"]],
-  ["LRA-ADP-RECOVERY-03","COMPARE","RECOVERY","比較的よく回復できた日があれば、回復しにくかった日と何が違っていましたか？","text_short",null,["slow_recovery","rest_shortage","carry_over"]],
-  ["LRA-ADP-RECOVERY-04","COUNTERFACTUAL","RECOVERY","30分だけ自由に使える時間が増えるとしたら、1日のどの時間に入れると一番休めそうですか？","text_short",null,["rest_shortage","restart_cost"]],
-  ["LRA-ADP-RECOVERY-05","PROTECT","RECOVERY","休んだり回復したりするために、今後も残しておきたい習慣・時間・場所はありますか？","text_short",null,["slow_recovery","rest_shortage","restart_cost","carry_over"]],
-  ["LRA-ADP-CROSS-01","COMPARE","CROSS","この2週間で「少し楽だった」「うまくいった」と感じた日があれば、その日は何が違っていましたか？","text_short",null,["cross"]],
-  ["LRA-ADP-CROSS-02","PROTECT","CROSS","今の生活で、変えると困りそうなものや、できればそのまま保ちたい条件はありますか？","text_short",null,["cross"]],
-  ["LRA-ADP-CROSS-03","COUNTERFACTUAL","CROSS","今の困りごとが半分くらい軽くなったとしたら、まず何ができるようになりそうですか？","text_short",null,["cross"]],
-  ["LRA-ADP-CROSS-04","PROTECT","CROSS","これから増やしたいものや、「こうなったらいい」と思う状態があれば書いてください。","text_short",null,["cross"]],
-  ["LRA-ADP-CROSS-05","FACT","CROSS","今すでに頼れそうな人や、使える時間・場所・道具・支援の中で、まだ十分に使えていないものはありますか？","text_short",null,["cross"]]
+const CORE_ROWS=[
+  ["LRA-CORE-ACTION-01","ACTION","やる必要があることに、なかなか取りかかれないことはどのくらいありましたか？","start_block","CORE_FREQ",null],
+  ["LRA-CORE-ACTION-02","ACTION","いったん始めたことが、途中で止まったままになることはどのくらいありましたか？","continuation_block","CORE_FREQ",null],
+  ["LRA-CORE-ACTION-03","ACTION","やることがいくつかあるとき、何から始めるか決めにくいことはどのくらいありましたか？","action_priority","CORE_FREQ",null],
+  ["LRA-CORE-ACTION-04","ACTION","やる量を減らしたいと思っても、減らしにくいことはどのくらいありましたか？","overdo","CORE_FREQ","やる量を減らしたいと思う場面はなかった"],
+  ["LRA-CORE-JUDGMENT-01","JUDGMENT","何かを決めるとき、考えることが多すぎると感じることはどのくらいありましたか？","information_load","CORE_FREQ",null],
+  ["LRA-CORE-JUDGMENT-02","JUDGMENT","何かを決めるとき、何を基準に選べばよいか分からなくなることはどのくらいありましたか？","criteria_instability","CORE_FREQ",null],
+  ["LRA-CORE-JUDGMENT-03","JUDGMENT","何かを決めるとき、周りの人の意見や期待が気になって、自分の考えが揺れることはどのくらいありましたか？","external_influence","CORE_FREQ",null],
+  ["LRA-CORE-JUDGMENT-04","JUDGMENT","何かを決めたあとも、「これでよかったのか」と考え続けることはどのくらいありましたか？","rumination","CORE_FREQ",null],
+  ["LRA-CORE-ENVIRONMENT-01","ENVIRONMENT","自分では変えにくい事情で、予定していたことを進めにくいことはどのくらいありましたか？","external_constraint","CORE_FREQ",null],
+  ["LRA-CORE-ENVIRONMENT-02","ENVIRONMENT","自分のために使える時間を、十分に取れないことはどのくらいありましたか？","personal_time_constraint","CORE_FREQ",null],
+  ["LRA-CORE-ENVIRONMENT-03","ENVIRONMENT","仕事・お金・家庭などの生活上の事情で、自分の選択肢が限られていると感じることはどのくらいありましたか？","life_constraint","CORE_FREQ",null],
+  ["LRA-CORE-ENVIRONMENT-04","ENVIRONMENT","困ったときに、誰かに助けを求めにくいことはどのくらいありましたか？","help_seeking_constraint","CORE_FREQ","助けを求める必要がある場面はなかった"],
+  ["LRA-CORE-EMOTION-01","EMOTION","気持ちが大きく揺れて、いつもならできることがしにくくなることはどのくらいありましたか？","emotion_impact","CORE_FREQ",null],
+  ["LRA-CORE-EMOTION-02","EMOTION","自分の気持ちを我慢したり抑えたりすることが、負担になることはどのくらいありましたか？","suppression","CORE_FREQ",null],
+  ["LRA-CORE-EMOTION-03","EMOTION","自分が何を感じているのか、自分でも分かりにくいことはどのくらいありましたか？","emotion_unclear","CORE_FREQ",null],
+  ["LRA-CORE-EMOTION-04","EMOTION","安心したり、ほっとしたりできる時間は、どのくらいありましたか？","calm_time_low","CORE_POSITIVE",null],
+  ["LRA-CORE-RECOVERY-01","RECOVERY","休んでも、疲れやつらさが残ることはどのくらいありましたか？","slow_recovery","CORE_FREQ","休んだ場面はなかった"],
+  ["LRA-CORE-RECOVERY-02","RECOVERY","休みたいと思っても、休む時間を取れないことはどのくらいありましたか？","rest_shortage","CORE_FREQ","休みたいと思う場面はなかった"],
+  ["LRA-CORE-RECOVERY-03","RECOVERY","いったん休んだり作業を止めたりしたあと、もう一度始めるのが難しいことはどのくらいありましたか？","restart_cost","CORE_FREQ","いったん止めて、もう一度始める場面はなかった"],
+  ["LRA-CORE-RECOVERY-04","RECOVERY","疲れや負担が、翌日以降まで残ることはどのくらいありましたか？","carry_over","CORE_FREQ",null]
 ];
 
-export const ADAPTIVE=A.map(([questionId,type,domain,text,answerType,options,branchTags])=>({questionId,stage:'ADAPTIVE',type,domain,timeRange:'直近14日を中心に具体例',text,answerType,options,branchTags,required:false,version:QUESTION_DB_VERSION}));
+export const CORE=CORE_ROWS.map(([questionId,domain,text,routingTag,scaleId,naLabel])=>({
+  questionId,stage:"CORE",type:"FACT",domain,timeRange:"ここ2週間ほど",text,answerType:"single_choice",
+  scaleId,routingTag,branchTags:[routingTag],required:true,version:QUESTION_DB_VERSION,
+  options:[...(scaleId==="CORE_POSITIVE"?CORE_POSITIVE:CORE_FREQ),...(naLabel?[{value:"NA",label:naLabel,responseState:"NA",exclusive:true}]:[])]
+}));
+
+const EVENT_SPECIAL=[special("__NA__","該当する場面はなかった","NA"),special("__UNKNOWN__","思い出せない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")];
+const COMPARE_SPECIAL=[special("__NA__","比べられる場面がなかった","NA"),special("__NONE__","違いは思い当たらない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")];
+const COUNTER_SPECIAL=[special("__NONE__","特に思い当たらない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")];
+const PROTECT_SPECIAL=[special("__NONE__","特にない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")];
+
+const ACTION_CONTEXT=[
+  {value:"time",label:"時間に余裕がなかった"},{value:"fatigue",label:"疲れや眠気があった"},{value:"priority",label:"何から始めるか決めにくかった"},
+  {value:"method",label:"やり方がはっきりしなかった"},{value:"outlook",label:"終わりまでの見通しが立ちにくかった"},{value:"motivation",label:"気持ちが向かなかった"},
+  {value:"external",label:"周りの予定や事情に左右されていた"},{value:"resources",label:"必要なものや道具がそろっていなかった"},{value:"money",label:"お金の制約があった"},
+  {value:"other",label:"その他",allowsText:true},{...UNKNOWN},{...PREFER_NOT}
+];
+const EMOTION_FIRST_CHANGE=[
+  {value:"body",label:"体の感覚や体調の変化"},{value:"thought",label:"考え方や、頭に浮かぶことの変化"},{value:"action",label:"自分の行動の変化"},
+  {value:"simultaneous",label:"いくつかの変化に、ほぼ同時に気づいた"},{value:"other",label:"その他",allowsText:true},
+  {value:"U",label:"はっきりわからない",responseState:"UNKNOWN",exclusive:true},{...PREFER_NOT}
+];
+const RECOVERY_CONTEXT=[
+  {value:"physical",label:"体の疲れが強かった"},{value:"mental",label:"頭を使い続けていた"},{value:"emotion",label:"気持ちの負担が大きかった"},
+  {value:"social",label:"人とのやり取りで疲れていた"},{value:"time",label:"時間に追われていた"},{value:"sleep",label:"睡眠が足りていなかった"},
+  {value:"continuous",label:"休む直前まで動き続けていた"},{value:"other",label:"その他",allowsText:true},{...UNKNOWN},{...PREFER_NOT}
+];
+
+const ADP=[
+  ["LRA-ADP-ACTION-01","EVENT","ACTION","やる必要があることに取りかかりにくかった場面があれば、一つ思い浮かべて、そのときのことを書いてください。","text_short",null,["LRA-CORE-ACTION-01"],EVENT_SPECIAL],
+  ["LRA-ADP-ACTION-02","FACT","ACTION","やる必要があることに取りかかりにくかったとき、当てはまっていた状況を選んでください。","multi_choice",ACTION_CONTEXT,["LRA-CORE-ACTION-01","LRA-CORE-ACTION-03"],null],
+  ["LRA-ADP-ACTION-03","EVENT","ACTION","始めたことが途中で止まったままになった場面があれば、一つ思い浮かべて、そのときのことを書いてください。","text_short",null,["LRA-CORE-ACTION-02"],EVENT_SPECIAL],
+  ["LRA-ADP-ACTION-04","COMPARE","ACTION","やることが進みやすかったときと、進みにくかったときでは、何が違っていましたか？","text_short",null,["LRA-CORE-ACTION-01","LRA-CORE-ACTION-02","LRA-CORE-ACTION-03"],COMPARE_SPECIAL],
+  ["LRA-ADP-ACTION-05","COUNTERFACTUAL","ACTION","今の負担を少し減らすために、やる量や回数を減らしても、あまり困らなそうなことはありますか？","text_short",null,["LRA-CORE-ACTION-04"],COUNTER_SPECIAL],
+  ["LRA-ADP-JUDGMENT-01","EVENT","JUDGMENT","決めるのが難しかった場面があれば、一つ思い浮かべて、何を決めようとしていたか書いてください。","text_short",null,["LRA-CORE-JUDGMENT-01","LRA-CORE-JUDGMENT-02","LRA-CORE-JUDGMENT-03","LRA-CORE-JUDGMENT-04"],EVENT_SPECIAL],
+  ["LRA-ADP-JUDGMENT-02","FACT","JUDGMENT","決めるのが難しかったとき、どんなことを基準にしようとしていましたか？","text_short",null,["LRA-CORE-JUDGMENT-02","LRA-CORE-JUDGMENT-03"],[special("__NONE__","基準は特に決めていなかった","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-ADP-JUDGMENT-03","COMPARE","JUDGMENT","決めやすかったときと、決めにくかったときでは、何が違っていましたか？","text_short",null,["LRA-CORE-JUDGMENT-01","LRA-CORE-JUDGMENT-02","LRA-CORE-JUDGMENT-03","LRA-CORE-JUDGMENT-04"],COMPARE_SPECIAL],
+  ["LRA-ADP-JUDGMENT-04","COUNTERFACTUAL","JUDGMENT","何かを決めるとき、何を整理できると決めやすくなりそうですか？","text_short",null,["LRA-CORE-JUDGMENT-01","LRA-CORE-JUDGMENT-02","LRA-CORE-JUDGMENT-04"],COUNTER_SPECIAL],
+  ["LRA-ADP-JUDGMENT-05","PROTECT","JUDGMENT","何かを決めるとき、早く決めることよりも大切にしたいことは何ですか？","text_short",null,["LRA-CORE-JUDGMENT-02","LRA-CORE-JUDGMENT-03"],PROTECT_SPECIAL],
+  ["LRA-ADP-ENVIRONMENT-01","EVENT","ENVIRONMENT","自分では変えにくい事情で、予定していたことを進めにくかった場面があれば、一つ書いてください。","text_short",null,["LRA-CORE-ENVIRONMENT-01","LRA-CORE-ENVIRONMENT-03"],EVENT_SPECIAL],
+  ["LRA-ADP-ENVIRONMENT-02","FACT","ENVIRONMENT","予定していたことを進めにくかった場面について、自分で変えられそうなことと、変えるのが難しそうなことは何ですか？","text_long",null,["LRA-CORE-ENVIRONMENT-01","LRA-CORE-ENVIRONMENT-03"],[special("__NA__","該当する場面はなかった","NA"),special("__NONE__","特に思い当たらない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-ADP-ENVIRONMENT-03","COMPARE","ENVIRONMENT","自分では変えにくい事情があっても、比較的予定を進めやすかったときがあれば、何が違っていましたか？","text_short",null,["LRA-CORE-ENVIRONMENT-01","LRA-CORE-ENVIRONMENT-02","LRA-CORE-ENVIRONMENT-03"],COMPARE_SPECIAL],
+  ["LRA-ADP-ENVIRONMENT-04","COUNTERFACTUAL","ENVIRONMENT","予定していたことを今より進めやすくするために、生活の中で一つ変えられるとしたら、何を変えたいですか？","text_short",null,["LRA-CORE-ENVIRONMENT-01","LRA-CORE-ENVIRONMENT-02","LRA-CORE-ENVIRONMENT-03"],COUNTER_SPECIAL],
+  ["LRA-ADP-ENVIRONMENT-05","PROTECT","ENVIRONMENT","今の生活を変えていくとしても、できれば残しておきたい人・場所・習慣・支えはありますか？","text_short",null,["LRA-CORE-ENVIRONMENT-02","LRA-CORE-ENVIRONMENT-03","LRA-CORE-ENVIRONMENT-04"],PROTECT_SPECIAL],
+  ["LRA-ADP-EMOTION-01","EVENT","EMOTION","気持ちが大きく揺れた場面があれば、一つ思い浮かべて、そのときのことを書いてください。","text_short",null,["LRA-CORE-EMOTION-01","LRA-CORE-EMOTION-02","LRA-CORE-EMOTION-03"],EVENT_SPECIAL],
+  ["LRA-ADP-EMOTION-02","FACT","EMOTION","気持ちが大きく揺れたとき、最初に気づいた変化は何でしたか？","single_choice",EMOTION_FIRST_CHANGE,["LRA-CORE-EMOTION-01","LRA-CORE-EMOTION-03"],null],
+  ["LRA-ADP-EMOTION-03","COMPARE","EMOTION","気持ちが大きく揺れても、比較的いつもどおりに過ごせたときがあれば、何が違っていましたか？","text_short",null,["LRA-CORE-EMOTION-01","LRA-CORE-EMOTION-02","LRA-CORE-EMOTION-03","LRA-CORE-EMOTION-04"],COMPARE_SPECIAL],
+  ["LRA-ADP-EMOTION-04","COUNTERFACTUAL","EMOTION","気持ちが大きく揺れたときでも、いつもどおりに過ごしやすくするには、何があるとよさそうですか？","text_short",null,["LRA-CORE-EMOTION-01","LRA-CORE-EMOTION-02","LRA-CORE-EMOTION-03"],COUNTER_SPECIAL],
+  ["LRA-ADP-EMOTION-05","FACT","EMOTION","今の生活の中で、気持ちが落ち着くのに役立っているものや時間はありますか？","text_short",null,["LRA-CORE-EMOTION-01","LRA-CORE-EMOTION-02","LRA-CORE-EMOTION-04"],PROTECT_SPECIAL],
+  ["LRA-ADP-RECOVERY-01","EVENT","RECOVERY","休んでも十分に回復した感じがしなかった場面があれば、一つ思い浮かべて、そのときのことを書いてください。","text_short",null,["LRA-CORE-RECOVERY-01","LRA-CORE-RECOVERY-04"],EVENT_SPECIAL],
+  ["LRA-ADP-RECOVERY-02","FACT","RECOVERY","休んでも回復しにくかったとき、休む前に当てはまっていたことを選んでください。","multi_choice",RECOVERY_CONTEXT,["LRA-CORE-RECOVERY-01","LRA-CORE-RECOVERY-04"],null],
+  ["LRA-ADP-RECOVERY-03","COMPARE","RECOVERY","比較的よく回復できたときと、回復しにくかったときでは、何が違っていましたか？","text_short",null,["LRA-CORE-RECOVERY-01","LRA-CORE-RECOVERY-02","LRA-CORE-RECOVERY-04"],COMPARE_SPECIAL],
+  ["LRA-ADP-RECOVERY-04","COUNTERFACTUAL","RECOVERY","いったん休んだり作業を止めたりしたあと、もう一度始めやすくするには、何が変わるとよさそうですか？","text_short",null,["LRA-CORE-RECOVERY-03"],COUNTER_SPECIAL],
+  ["LRA-ADP-RECOVERY-05","PROTECT","RECOVERY","休んだり回復したりするために、これからも残しておきたい習慣・時間・場所はありますか？","text_short",null,["LRA-CORE-RECOVERY-01","LRA-CORE-RECOVERY-02","LRA-CORE-RECOVERY-03","LRA-CORE-RECOVERY-04"],PROTECT_SPECIAL],
+  ["LRA-ADP-CROSS-01","COMPARE","CROSS","ここ2週間くらいで、比較的過ごしやすかった日や時間があれば、普段と何が違っていましたか？","text_short",null,[],COMPARE_SPECIAL],
+  ["LRA-ADP-CROSS-02","FACT","CROSS","いくつかの負担が重なったとき、自分の中で最初に「いつもと違う」と気づくのは、どんな変化ですか？","text_short",null,[],[special("__NONE__","特に決まっていない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-ADP-CROSS-03","COUNTERFACTUAL","CROSS","今の困りごとや負担が少し軽くなったら、まず何ができるようになりそうですか？","text_short",null,[],COUNTER_SPECIAL],
+  ["LRA-ADP-CROSS-04","COUNTERFACTUAL","CROSS","今の困りごとや負担を少し軽くするために、今より増えたら助かりそうなものはありますか？","text_short",null,[],COUNTER_SPECIAL],
+  ["LRA-ADP-CROSS-05","FACT","CROSS","今の困りごとや負担を軽くするのに役立ちそうなのに、まだ十分に使えていないものはありますか？","text_short",null,[],PROTECT_SPECIAL]
+];
+
+export const ADAPTIVE=ADP.map(([questionId,type,domain,text,answerType,options,parentCoreIds,specialResponses])=>({
+  questionId,stage:"ADAPTIVE",type,domain,timeRange:"ここ2週間ほどを中心に具体例",text,answerType,options,
+  parentCoreIds,branchTags:[],specialResponses:specialResponses||[],required:false,version:QUESTION_DB_VERSION
+}));
 
 const E=[
-  ["LRA-EVT-01","EVENT","今の生活に大きく影響した出来事について、起きたことを短く書いてください。","text_long"],
-  ["LRA-EVT-02","FACT","その出来事は、いつ頃ありましたか？","text_long"],
-  ["LRA-EVT-03","EVENT","その直後、生活の中で最初に変わったことは何でしたか？","text_long"],
-  ["LRA-EVT-04","EVENT","その出来事のあと、行動や物事の決め方はどう変わりましたか？","text_long"],
-  ["LRA-EVT-05","PROTECT","その出来事で、失ったと感じるものや、反対に守れたものはありますか？","text_long"],
-  ["LRA-EVT-06","COMPARE","以前にも、似た出来事や似た反応がありましたか？","text_long"],
-  ["LRA-EVT-07","COUNTERFACTUAL","もしその出来事がなかったとしたら、今の生活は何が違っていたと思いますか？","text_long"],
-  ["LRA-EVT-08","FACT","その出来事のあとから、今も続いている変化はありますか？","text_long"]
+  ["LRA-EVT-01","EVENT","今の生活に大きく影響したと感じる出来事について、何があったのかを書いてください。",[special("__NA__","思い当たる出来事はない","NA"),special("__UNKNOWN__","思い出せない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-EVT-02","FACT","その出来事があったのは、いつ頃ですか？",[special("__UNKNOWN__","時期はよく覚えていない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-EVT-03","EVENT","その出来事のあと、最初に「変わった」と気づいたことは何ですか？",COUNTER_SPECIAL],
+  ["LRA-EVT-04","EVENT","その出来事のあと、日ごろの過ごし方や物事の決め方で、変わったことはありますか？",[special("__NONE__","特に変わったことはない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-EVT-05","PROTECT","その出来事のあと、失ったり減ったりしたと感じるものや、反対に残せたと感じるものはありますか？",COUNTER_SPECIAL],
+  ["LRA-EVT-06","COMPARE","以前にも、別の出来事のあとに今回と似た変化が起きたことがあれば、そのときのことを書いてください。",[special("__NONE__","似た経験は思い当たらない","NONE"),special("__UNKNOWN__","よく覚えていない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-EVT-07","COUNTERFACTUAL","もしその出来事がなかったとしたら、今の生活で違っていたと思うことは何ですか？",COUNTER_SPECIAL],
+  ["LRA-EVT-08","FACT","その出来事のあとに起きた変化の中で、今も続いているものはありますか？",[special("__NONE__","今も続いている変化はない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]]
 ];
-export const EVENT_TRACE=E.map(([questionId,type,text,answerType])=>({questionId,stage:'EVENT_TRACE',type,domain:'CROSS',timeRange:'対象出来事',text,answerType,options:null,branchTags:['event'],required:false,version:QUESTION_DB_VERSION}));
+export const EVENT_TRACE=E.map(([questionId,type,text,specialResponses])=>({questionId,stage:"EVENT_TRACE",type,domain:"CROSS",timeRange:"対象出来事",text,answerType:"text_long",options:null,branchTags:["event"],specialResponses,required:false,version:QUESTION_DB_VERSION}));
 
 const R=[
-  ["LRA-REF-01","FACT","今、いちばん困っていることは何ですか？"],
-  ["LRA-REF-02","FACT","最近、新しく増えた負担や、以前より大きくなった負担はありますか？"],
-  ["LRA-REF-03","FACT","今の困りごとや負担の原因を、自分ではどう考えていますか？"],
-  ["LRA-REF-04","FACT","今、できるだけ早く変えたいことは何ですか？"],
-  ["LRA-REF-05","PROTECT","反対に、今のまま残したいことや、変えたくないことは何ですか？"],
-  ["LRA-REF-06","FACT","3か月後、今よりどうなっていたいですか？"],
-  ["LRA-REF-07","PROTECT","今の生活の中で、いちばん失いたくないものは何ですか？"],
-  ["LRA-REF-08","FACT","今の自分にできそうなことがあれば、書いてください。"]
+  ["LRA-REF-01","FACT","今の生活で、いちばん困っていることは何ですか？",[special("__NONE__","特に困っていることはない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-REF-02","FACT","ここ2週間くらいで、新しく増えた負担や、前より重くなった負担はありますか？",PROTECT_SPECIAL],
+  ["LRA-REF-03","FACT","今いちばん困っていることや負担には、どんなことが関係していると思いますか？",[special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-REF-04","FACT","今いちばん困っていることや負担の中で、できるだけ早く変えたいことは何ですか？",PROTECT_SPECIAL],
+  ["LRA-REF-05","PROTECT","今の生活の中で、できれば変えずに残したいことはありますか？",PROTECT_SPECIAL],
+  ["LRA-REF-06","FACT","3か月後、今の生活がどうなっていたら「今より良くなった」と感じられそうですか？",[special("__NONE__","特に思い描いている状態はない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]],
+  ["LRA-REF-07","PROTECT","今の困りごとや負担を軽くするために、何かを変えるとしても、失いたくないものは何ですか？",PROTECT_SPECIAL],
+  ["LRA-REF-08","FACT","今いちばん困っていることや、変えたいことに対して、今の自分でもできそうなことはありますか？",[special("__NONE__","今できそうなことは思い当たらない","NONE"),special("__UNKNOWN__","よくわからない","UNKNOWN"),special("__PREFER_NOT__","答えたくない","PREFER_NOT")]]
 ];
-export const REFLECTION=R.map(([questionId,type,text])=>({questionId,stage:'REFLECTION',type,domain:'CROSS',timeRange:'現在',text,answerType:'text_long',options:null,branchTags:['reflection'],required:false,version:QUESTION_DB_VERSION}));
+export const REFLECTION=R.map(([questionId,type,text,specialResponses])=>({questionId,stage:"REFLECTION",type,domain:"CROSS",timeRange:"現在",text,answerType:"text_long",options:null,branchTags:["reflection"],specialResponses,required:false,version:QUESTION_DB_VERSION}));
