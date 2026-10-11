@@ -1,7 +1,8 @@
-import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261011-q3';
-import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261011-q3';
+import { PLANS, OPTIONS, CORE, ADAPTIVE, EVENT_TRACE, REFLECTION, QUESTION_DB_VERSION, PACKET_VERSION } from './questions.js?v=20261011-q4';
+import { SHORT_TERM_OBSERVATION } from './short-term.js?v=20261011-q4';
 import { buildAnalysisPacket, LRA_CANON } from './lra-canon.js';
 import { INFERENCE_CONTRACT } from './inference-contract.js';
+import { computeAdaptiveQuestionIds, sanitizeAnswerMap, sanitizeQuestionAnswer } from './question-routing.js?v=20261011-q4';
 
 const $=s=>document.querySelector(s);
 const stateKey='lra.state.2.0';
@@ -9,14 +10,14 @@ const historyKey='lra.history.1.3';
 const userKey='lra.user.1.0';
 const domainLabel={ACTION:'行動',JUDGMENT:'決め方',ENVIRONMENT:'生活環境',EMOTION:'気持ち',RECOVERY:'休息・回復',CROSS:'全体'};
 const stageLabel={CORE:'基本質問',ADAPTIVE:'追加質問',EVENT_TRACE:'出来事について',REFLECTION:'振り返り',SHORT_TERM_OBSERVATION:'短期チェック'};
-const domainOrder=['ACTION','JUDGMENT','ENVIRONMENT','EMOTION','RECOVERY'];
+const allQuestions=[...CORE,...ADAPTIVE,...EVENT_TRACE,...REFLECTION,...SHORT_TERM_OBSERVATION];
 let memoryState=null;
 
 function randomHex(bytes=16){const a=new Uint8Array(bytes);crypto.getRandomValues(a);return[...a].map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();}
 function dateStamp(){const d=new Date();return`${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;}
 function getUserId(){let id=window.LRA_ACCOUNT?.profile?.userId||null;try{id=id||localStorage.getItem(userKey);}catch{}return id||null;}
 function blank(plan='FREE'){return{userId:getUserId(),lraId:`LRA-${dateStamp()}-${randomHex(4)}`,analysisCount:1,planCode:plan,outputId:null,stage:'INTRO',index:0,answers:{},answerExtras:{},adaptiveQuestionIds:[],eventTraceUsed:null,savedAt:null,status:'受付',analysisPacket:null,baseAnalysisPacket:null,analysis:null};}
-function loadState(){try{const x=JSON.parse(localStorage.getItem(stateKey)||'null');if(x&&x.lraId){x.userId=x.userId||getUserId();x.analysisCount=Number(x.analysisCount||1);x.answers=x.answers||{};x.answerExtras=x.answerExtras||{};x.adaptiveQuestionIds=Array.isArray(x.adaptiveQuestionIds)?x.adaptiveQuestionIds:[];return x;}}catch{}return memoryState||blank();}
+function loadState(){try{const x=JSON.parse(localStorage.getItem(stateKey)||'null');if(x&&x.lraId){x.userId=x.userId||getUserId();x.analysisCount=Number(x.analysisCount||1);x.answers=x.answers||{};x.answerExtras=x.answerExtras||{};x.adaptiveQuestionIds=Array.isArray(x.adaptiveQuestionIds)?x.adaptiveQuestionIds:[];const cleaned=sanitizeAnswerMap(allQuestions,x.answers);x.answers=cleaned.answers;for(const id of cleaned.corruptedIds)delete x.answerExtras[id];return x;}}catch{}return memoryState||blank();}
 let state=loadState();
 function setStored(key,value){try{localStorage.setItem(key,value);return true;}catch{return false;}}
 function getStored(key,fallback=''){try{return localStorage.getItem(key)||fallback;}catch{return fallback;}}
@@ -31,7 +32,6 @@ function escapeHtml(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;',
 function valuePresent(v){return !(v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0));}
 function optionFor(q,v){return(q.options||[]).find(o=>String(o.value)===String(v));}
 function responseState(q,v){if(!valuePresent(v))return'UNANSWERED';if(Array.isArray(v)){if(v.length===1)return optionFor(q,v[0])?.responseState||'ANSWER';return'ANSWER';}return optionFor(q,v)?.responseState||(q.specialResponses||[]).find(o=>String(o.value)===String(v))?.responseState||'ANSWER';}
-function routingSignal(q){const v=state.answers[q.questionId];if(!valuePresent(v))return null;const o=optionFor(q,v);if(o?.responseState)return null;return Number.isFinite(o?.routingSignal)?o.routingSignal:null;}
 
 function beginPlan(code){if(code!=='FREE'){alert('有料プランは現在受付準備中です。');return;}state=blank(code);persist();renderIntro();}
 function renderPlans(){
@@ -44,42 +44,8 @@ function renderPlans(){
 function renderIntro(){show('intro');$('#introPlan').textContent=`${plan().name}｜${money(plan().price)}`;$('#introId').textContent=state.lraId;}
 
 function selectAdaptive(){
-  const coreSignal=new Map(CORE.map(q=>[q.questionId,routingSignal(q)]));
-  const domainStats={};
-  for(const d of domainOrder){const rows=CORE.filter(q=>q.domain===d).map(q=>coreSignal.get(q.questionId)).filter(Number.isFinite);const active=rows.filter(x=>x>=2);domainStats[d]={max:active.length?Math.max(...active):0,count:active.length};}
-  const budgets={};
-  for(const d of domainOrder){const s=domainStats[d];let b=s.max<=1?0:s.max===2?2:s.max===3?3:4;if(s.count>=2)b=Math.min(4,b+1);budgets[d]=b;}
-  const queues={};
-  for(const d of domainOrder){
-    queues[d]=ADAPTIVE.map((q,order)=>({q,order})).filter(x=>x.q.domain===d).map(x=>{
-      const activeParents=(x.q.parentCoreIds||[]).filter(id=>(coreSignal.get(id)??-1)>=2);
-      const max=activeParents.length?Math.max(...activeParents.map(id=>coreSignal.get(id))):0;
-      return{...x,activeParents,max};
-    }).filter(x=>x.activeParents.length>0).sort((a,b)=>b.max-a.max||b.activeParents.length-a.activeParents.length||a.order-b.order);
-  }
-  const activeDomains=domainOrder.filter(d=>budgets[d]>0);
-  activeDomains.sort((a,b)=>domainStats[b].max-domainStats[a].max||domainOrder.indexOf(a)-domainOrder.indexOf(b));
-  const out=[],counts={};
-  const nonCrossCap=activeDomains.length>=2?12:14;
-  let progressed=true;
-  while(out.length<nonCrossCap&&progressed){
-    progressed=false;
-    for(const d of activeDomains){
-      if(out.length>=nonCrossCap)break;
-      if((counts[d]||0)>=budgets[d])continue;
-      const next=queues[d].shift();if(!next)continue;
-      out.push(next.q);counts[d]=(counts[d]||0)+1;progressed=true;
-    }
-  }
-  const activeCount=activeDomains.length;
-  if(activeCount>=2&&out.length<14){
-    const globalMax=Math.max(...activeDomains.map(d=>domainStats[d].max));
-    const activeTags=new Set(CORE.filter(q=>(coreSignal.get(q.questionId)??-1)>=2).map(q=>q.routingTag));
-    const crossOrder=['LRA-ADP-CROSS-01','LRA-ADP-CROSS-03','LRA-ADP-CROSS-05','LRA-ADP-CROSS-02','LRA-ADP-CROSS-04'];
-    const eligible=id=>id==='LRA-ADP-CROSS-01'||(id==='LRA-ADP-CROSS-02'&&activeCount>=3)||(id==='LRA-ADP-CROSS-03'&&globalMax>=3)||(id==='LRA-ADP-CROSS-04'&&(activeDomains.includes('ENVIRONMENT')||activeDomains.includes('RECOVERY')))||(id==='LRA-ADP-CROSS-05'&&(activeDomains.includes('ENVIRONMENT')||activeTags.has('help_seeking_constraint')||activeTags.has('personal_time_constraint')));
-    for(const id of crossOrder){if(out.length>=14||out.filter(q=>q.domain==='CROSS').length>=2)break;if(!eligible(id))continue;const q=ADAPTIVE.find(x=>x.questionId===id);if(q)out.push(q);}
-  }
-  const nextIds=out.map(q=>q.questionId);
+  const nextIds=computeAdaptiveQuestionIds(CORE,ADAPTIVE,state.answers);
+  const out=nextIds.map(id=>ADAPTIVE.find(q=>q.questionId===id)).filter(Boolean);
   ADAPTIVE.forEach(q=>{if(!nextIds.includes(q.questionId)){delete state.answers[q.questionId];delete state.answerExtras?.[q.questionId];}});
   state.adaptiveQuestionIds=nextIds;persist();return out;
 }
@@ -122,6 +88,7 @@ function renderQuestion(){
     }else if(q.answerType==='single_choice'){
       value=state.answers[q.questionId];const selected=optionFor(q,value);const extra=selected?.allowsText?(area.querySelector('[data-other-text]')?.value.trim()||''):'';state.answerExtras=state.answerExtras||{};if(extra)state.answerExtras[q.questionId]={other:extra};else delete state.answerExtras[q.questionId];
     }else value=area.dataset.specialValue||area.querySelector('.text-field')?.value.trim()||'';
+    value=sanitizeQuestionAnswer(q,value);
     if(q.required&&!valuePresent(value)){alert('回答を選んでください。');return;}
     state.answers[q.questionId]=value;const rs=responseState(q,value);
     if(q.questionId==='LRA-EVT-01'&&['NA','UNKNOWN','PREFER_NOT'].includes(rs)){EVENT_TRACE.slice(1).forEach(x=>{delete state.answers[x.questionId];delete state.answerExtras?.[x.questionId];});state.eventTraceUsed=false;state.stage='REFLECTION';state.index=0;persist();renderQuestion();return;}
