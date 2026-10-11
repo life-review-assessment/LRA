@@ -1,8 +1,8 @@
-const CACHE='lra-static-v1.5.50-restore';
+const CACHE='lra-static-v1.5.35';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg',
   './terms.html','./privacy.html','./legal.html',
-  './assets/style.css','./assets/questions.js','./assets/short-term.js','./assets/question-routing.js',
+  './assets/style.css','./assets/questions.js','./assets/short-term.js',
   './assets/lra-canon.js','./assets/legacy-canon.js','./assets/legacy-sheet-schema.js','./assets/legacy-report-assets.js','./assets/inference-contract.js',
   './assets/account-gate.js','./assets/main-canonical.js','./assets/submission-transport.js','./assets/handoff-ui.js','./assets/user-dashboard.js','./assets/short-term-ui.js','./assets/startup-guard.js','./assets/pwa.js'
 ];
@@ -16,5 +16,5 @@ self.addEventListener('fetch',event=>{
     event.respondWith(fetch(event.request,{cache:'no-store'}).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));return r;}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
     return;
   }
-  event.respondWith(fetch(event.request,{cache:'no-store'}).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));}return r;}).catch(()=>caches.match(event.request)));
+  event.respondWith(fetch(event.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));}return r;}).catch(()=>caches.match(event.request)));
 });
