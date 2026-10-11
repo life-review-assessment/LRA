@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <meta name="description" content="LRA - Life Review Assessment。今の暮らしを、負担だけでなく支え・守りたいもの・使える資源まで含めて整理し、これからの選択を考えるための意思決定支援サービス。">
   <link rel="manifest" href="./manifest.json">
-  <link rel="stylesheet" href="./assets/style.css?v=20261009-final1">
+  <link rel="stylesheet" href="./assets/style.css?v=20261011-mobile-exact2">
   <style>
     .cover-brand{display:flex!important;align-items:center;gap:12px;width:auto!important;max-width:100%!important;height:auto!important;opacity:1!important;visibility:visible!important;filter:none!important;mix-blend-mode:normal!important;color:#171613}
     .cover-brand-mark{width:59px;height:70px;flex:0 0 auto;display:block;object-fit:contain;background:none!important}
@@ -21,6 +21,7 @@
     .cover-intro p{margin:0}.cover-intro p+p{margin-top:1px}
     .lra-intro-grid{display:grid;grid-template-columns:1fr .92fr;gap:8vw;align-items:start}
     .lra-intro-thesis{font:400 clamp(34px,4.5vw,58px)/1.35 Georgia,"Yu Mincho","Hiragino Mincho ProN",serif;letter-spacing:-.035em;margin:0}
+    .lra-intro-thesis>span,.lra-intro-thesis>strong{display:block}
     .lra-intro-copy{padding-top:36px}
     .lra-intro-copy p{font-size:13px;line-height:2;color:#5c574f;margin:0 0 22px}
     .lra-intro-copy strong{font-weight:600;color:#171613}
@@ -49,7 +50,14 @@
       .result-preview-section>.site-wrap>h2{font-size:clamp(36px,8.7vw,42px)!important;line-height:1.18!important;max-width:100%}
       .result-preview-grid{margin-top:46px}
       .result-preview-grid article{min-height:0;padding-top:34px;padding-bottom:34px}
-      .lra-intro-grid{grid-template-columns:1fr;gap:28px}.lra-intro-copy{padding-top:0}.lra-intro-thesis{font-size:clamp(32px,9vw,44px);line-height:1.42}.lra-intro-decision{margin-top:54px}.lra-intro-decision:before{width:54px;margin-bottom:30px}.lra-intro-decision p{font-size:clamp(34px,9vw,46px);line-height:1.45}
+      .about-section,.about-section>.site-wrap,.about-section .lra-intro-grid,.about-section .lra-intro-thesis,.about-section .lra-intro-copy,.about-section .lra-intro-decision,.about-section .site-steps{position:static!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;transform:none!important}
+      .about-section .lra-intro-grid{display:block!important}
+      .lra-intro-copy{padding-top:0;margin-top:30px}
+      .lra-intro-thesis{font-size:34px;line-height:1.42;letter-spacing:-.025em}
+      .lra-intro-thesis>span+.lra-intro-thesis>span{margin-top:12px}
+      .lra-intro-thesis>strong{margin-top:12px}
+      .lra-intro-decision{margin-top:48px}.lra-intro-decision:before{width:54px;margin-bottom:30px}.lra-intro-decision p{font-size:34px;line-height:1.45;letter-spacing:-.03em}
+      .about-section .site-steps{display:block!important;margin-top:48px}
       .home-pricing,.result-preview-grid,.site-steps{border-left:0!important;border-right:0!important}
       .home-plan-card,.result-preview-grid article,.site-steps article,.site-steps article+article{border-left:0!important;border-right:0!important}
       .home-plan-card.featured,.result-preview-grid article.dark{width:auto!important;margin-left:-24px!important;margin-right:-24px!important;padding-left:24px!important;padding-right:24px!important;border-left:0!important;border-right:0!important;border-radius:0!important;background:#181714!important;box-shadow:none!important}
@@ -79,7 +87,7 @@
     </div>
   </section>
 
-  <section data-view="home" id="about" class="site-section about-section"><div class="site-wrap"><div class="lra-intro-grid"><div><p class="site-kicker">WHAT LRA DOES</p><p class="lra-intro-thesis">そんなとき、必要なのは<br>もっと頑張ることではなく、<br><strong>今の生活を一度、構造として整理すること。</strong></p></div><div class="lra-intro-copy"><p>LRAは、困りごとや負担だけを見るサービスではありません。<br>支えになっていること、守りたいもの、すでに機能している部分、使える資源まで含めて生活全体を整理します。</p></div></div><div class="lra-intro-decision"><p>何を変えるか。何を残すか。次に何を選ぶか。</p><small>LRAは、その判断をしやすくするための意思決定支援です。</small></div><div class="site-steps"><article><span>01</span><h3>今の状態を確認する</h3><p>行動、決め方、生活環境、気持ち、休息・回復について、負担と今うまくいっている部分の両方を直近14日から確認します。</p></article><article><span>02</span><h3>回答に合わせて詳しく見る</h3><p>回答内容に合わせた追加質問で、必要な部分をもう少し詳しく確認します。</p></article><article><span>03</span><h3>つながりを整理する</h3><p>負担が続く流れだけでなく、例外、支え、守りたいもの、使える資源も含めて全体のつながりを整理します。</p></article><article><span>04</span><h3>次の一歩を考える</h3><p>何を変えるかだけでなく、何を変えないかも含めて、次の判断に使える選択肢を整理します。</p></article></div></div></section>
+  <section data-view="home" id="about" class="site-section about-section"><div class="site-wrap"><div class="lra-intro-grid"><div><p class="site-kicker">WHAT LRA DOES</p><p class="lra-intro-thesis"><span>そんなとき、必要なのは</span><span>もっと頑張ることではなく、</span><strong>今の生活を一度、構造として整理すること。</strong></p></div><div class="lra-intro-copy"><p>LRAは、困りごとや負担だけを見るサービスではありません。<br>支えになっていること、守りたいもの、すでに機能している部分、使える資源まで含めて生活全体を整理します。</p></div></div><div class="lra-intro-decision"><p>何を変えるか。何を残すか。次に何を選ぶか。</p><small>LRAは、その判断をしやすくするための意思決定支援です。</small></div><div class="site-steps"><article><span>01</span><h3>今の状態を確認する</h3><p>行動、決め方、生活環境、気持ち、休息・回復について、負担と今うまくいっている部分の両方を直近14日から確認します。</p></article><article><span>02</span><h3>回答に合わせて詳しく見る</h3><p>回答内容に合わせた追加質問で、必要な部分をもう少し詳しく確認します。</p></article><article><span>03</span><h3>つながりを整理する</h3><p>負担が続く流れだけでなく、例外、支え、守りたいもの、使える資源も含めて全体のつながりを整理します。</p></article><article><span>04</span><h3>次の一歩を考える</h3><p>何を変えるかだけでなく、何を変えないかも含めて、次の判断に使える選択肢を整理します。</p></article></div></div></section>
 
   <section data-view="home" id="flow" class="site-section flow-section"><div class="site-wrap"><p class="site-kicker light">ASSESSMENT FLOW</p><h2>まず全体を<span class="mobile-break"><br></span>確認して、<br>回答に合わせて<span class="mobile-break"><br></span>詳しく見ます。</h2><div class="flow-list"><div><b>01</b><span>生活全体を確認</span><small>基本質問</small></div><div><b>02</b><span>回答内容に合わせて追加で確認</span><small>追加質問</small></div><div><b>03</b><span>影響の大きい出来事を確認</span><small>出来事の確認</small></div><div><b>04</b><span>負担・支え・資源のつながりを整理</span><small>全体の整理</small></div></div></div></section>
 
@@ -102,12 +110,19 @@
   </div>
 </main>
 <footer class="footer"><span>© LRA</span><nav><a href="./terms.html">TERMS</a><a href="./privacy.html">PRIVACY</a><a href="./legal.html">LEGAL</a></nav><span class="version">Question DB lra-question-db-1.1.3 / LRA-PACKET-1.1</span></footer>
-<script src="./assets/account-gate.js?v=20261009-server1"></script>
-<script type="module" src="./assets/main-canonical.js?v=20261009-server1"></script>
-<script type="module" src="./assets/handoff-ui.js?v=20261009-server1"></script>
-<script type="module" src="./assets/user-dashboard.js?v=20261009-server1"></script>
-<script type="module" src="./assets/short-term-ui.js?v=20261009-server1"></script>
-<script type="module" src="./assets/startup-guard.js?v=20261009-server1"></script>
-<script type="module" src="./assets/pwa.js?v=20261009-server1"></script>
+<script src="./assets/account-gate.js?v=20261011-mobile-exact2"></script>
+<script>
+  document.getElementById('userLoginEntry')?.addEventListener('click',event=>{
+    if(window.LRA_ACCOUNT?.authenticated)return;
+    event.stopImmediatePropagation();
+    window.LRA_ACCOUNT_UI?.openLogin?.();
+  },true);
+</script>
+<script type="module" src="./assets/main-canonical.js?v=20261011-mobile-exact2"></script>
+<script type="module" src="./assets/handoff-ui.js?v=20261011-mobile-exact2"></script>
+<script type="module" src="./assets/user-dashboard.js?v=20261011-mobile-exact2"></script>
+<script type="module" src="./assets/short-term-ui.js?v=20261011-mobile-exact2"></script>
+<script type="module" src="./assets/startup-guard.js?v=20261011-mobile-exact2"></script>
+<script type="module" src="./assets/pwa.js?v=20261011-mobile-exact2"></script>
 </body>
 </html>
