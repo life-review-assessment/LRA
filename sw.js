@@ -1,5 +1,5 @@
-const CACHE='lra-static-v1.5.47';
-const REFRESH_MARK='1547';
+const CACHE='lra-static-v1.5.48';
+const REFRESH_MARK='1548';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg',
   './terms.html','./privacy.html','./legal.html',
