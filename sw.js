@@ -1,5 +1,5 @@
-const CACHE='lra-static-v1.5.48';
-const REFRESH_MARK='1548';
+const CACHE='lra-static-v1.5.49';
+const REFRESH_MARK='1549';
 const STATIC=[
   './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg',
   './terms.html','./privacy.html','./legal.html',
@@ -22,6 +22,7 @@ self.addEventListener('activate',event=>{
         if(u.origin!==self.location.origin)return;
         if(u.searchParams.get('lra_sw')===REFRESH_MARK)return;
         u.searchParams.set('lra_sw',REFRESH_MARK);
+        u.searchParams.set('lra_fix','about-r9');
         await client.navigate(u.href);
       }catch{}
     }));
