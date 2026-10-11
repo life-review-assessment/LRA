@@ -1,6 +1,31 @@
 const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
 const IN_PROGRESS=new Set(['CORE','ADAPTIVE','EVENT_CHECK','EVENT_TRACE','REFLECTION','REVIEW','SHORT_TERM_OBSERVATION']);
 
+function installMobileHomeLayoutGuard(){
+  if(document.getElementById('lraMobileHomeLayoutGuard'))return;
+  const style=document.createElement('style');
+  style.id='lraMobileHomeLayoutGuard';
+  style.textContent=`
+    @media (max-width:760px){
+      html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+      #about,#about>.site-wrap,#about .lra-intro-grid,#about .lra-intro-grid>div,#about .lra-intro-thesis,#about .lra-intro-copy,#about .lra-intro-decision,#about .site-steps{
+        height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important
+      }
+      #about .lra-intro-grid{display:block!important}
+      #about .lra-intro-thesis{
+        display:block!important;margin:0!important;font-size:36px!important;line-height:1.45!important;
+        letter-spacing:-.025em!important;white-space:normal!important;word-break:normal!important;overflow-wrap:anywhere!important
+      }
+      #about .lra-intro-copy{display:block!important;padding-top:28px!important}
+      #about .lra-intro-decision{display:block!important;margin-top:44px!important}
+      #about .site-steps{display:grid!important;grid-template-columns:1fr!important;margin-top:44px!important}
+      section[data-view="home"]{max-height:none!important;overflow:visible!important}
+    }
+  `;
+  document.head.appendChild(style);
+}
+installMobileHomeLayoutGuard();
+
 function showOnly(view){
   document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('hidden',el.dataset.view!==view));
   window.scrollTo({top:0,behavior:'auto'});
