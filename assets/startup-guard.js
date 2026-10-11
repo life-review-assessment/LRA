@@ -1,6 +1,59 @@
 const API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
 const IN_PROGRESS=new Set(['CORE','ADAPTIVE','EVENT_CHECK','EVENT_TRACE','REFLECTION','REVIEW','SHORT_TERM_OBSERVATION']);
 
+function installVisualOnlyMobileFix(){
+  if(document.getElementById('lraVisualOnlyMobileFix'))return;
+  const style=document.createElement('style');
+  style.id='lraVisualOnlyMobileFix';
+  style.textContent=`
+    @media (max-width:760px){
+      #about,#about>.site-wrap,#about .lra-intro-grid,#about .lra-intro-grid>div,#about .lra-intro-thesis,#about .lra-intro-copy,#about .lra-intro-decision{
+        position:static!important;
+        height:auto!important;
+        min-height:0!important;
+        max-height:none!important;
+        overflow:visible!important;
+        contain:none!important;
+        content-visibility:visible!important;
+        transform:none!important;
+        opacity:1!important;
+        visibility:visible!important;
+      }
+      #about .lra-intro-grid{display:block!important}
+      #about .lra-intro-thesis{
+        display:block!important;
+        margin:0!important;
+        padding:0!important;
+        white-space:normal!important;
+        word-break:normal!important;
+        overflow-wrap:normal!important;
+        -webkit-text-size-adjust:100%!important;
+        text-size-adjust:100%!important;
+      }
+      #about .lra-intro-thesis strong{
+        display:block!important;
+        position:static!important;
+        height:auto!important;
+        min-height:0!important;
+        max-height:none!important;
+        margin:0!important;
+        padding:0!important;
+        overflow:visible!important;
+        visibility:visible!important;
+        opacity:1!important;
+        transform:none!important;
+        font:inherit!important;
+        font-weight:600!important;
+        color:#171613!important;
+      }
+      #about .lra-intro-copy{padding-top:0!important;margin-top:28px!important}
+      #about .lra-intro-decision{margin-top:54px!important}
+    }
+  `;
+  document.head.appendChild(style);
+}
+installVisualOnlyMobileFix();
+
 function showOnly(view){
   document.querySelectorAll('[data-view]').forEach(el=>el.classList.toggle('hidden',el.dataset.view!==view));
   window.scrollTo({top:0,behavior:'auto'});
