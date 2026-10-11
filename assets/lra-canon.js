@@ -36,11 +36,55 @@ export const LRA_CANON=Object.freeze({
   })
 });
 
+function valuePresent(v){return !(v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0));}
+function optionFor(q,v){return (q?.options||[]).find(o=>String(o.value)===String(v));}
+function specialFor(q,v){return (q?.specialResponses||[]).find(o=>String(o.value)===String(v));}
+function labelFor(q,v){return optionFor(q,v)?.label||specialFor(q,v)?.label||String(v);}
+function stateFor(q,v){
+  if(!valuePresent(v))return'UNANSWERED';
+  if(Array.isArray(v)){
+    if(v.length===1){const o=optionFor(q,v[0]);if(o?.responseState)return o.responseState;}
+    return'ANSWER';
+  }
+  return optionFor(q,v)?.responseState||specialFor(q,v)?.responseState||'ANSWER';
+}
+function answerRecord(q,v){
+  const selectedValues=Array.isArray(v)?[...v]:(q?.options&&valuePresent(v)?[v]:[]);
+  const selectedLabels=selectedValues.map(x=>labelFor(q,x));
+  const responseState=stateFor(q,v);
+  const rawText=!Array.isArray(v)&&!q?.options&&responseState==='ANSWER'?String(v):null;
+  const answerLabel=Array.isArray(v)?selectedLabels.join(' / '):(valuePresent(v)?labelFor(q,v):null);
+  return{
+    questionId:q.questionId,
+    questionDbVersion:q.version||null,
+    questionDefinitionVersion:q.version||null,
+    type:q.type,
+    domain:q.domain,
+    timeRange:q.timeRange,
+    questionText:q.text,
+    text:q.text,
+    answerType:q.answerType,
+    optionSnapshot:(q.options||[]).map(o=>({value:o.value,label:o.label,responseState:o.responseState||'ANSWER'})),
+    responseState,
+    answer:v,
+    answerValue:Array.isArray(v)?null:v,
+    answerLabel,
+    rawText,
+    selectedOptionValues:selectedValues,
+    selectedOptionLabels:selectedLabels
+  };
+}
+
 export function buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,SHORT_TERM_OBSERVATION=[]},meta={}){
-  const pick=(list)=>list.map(q=>({questionId:q.questionId,type:q.type,domain:q.domain,timeRange:q.timeRange,text:q.text,answer:state.answers?.[q.questionId]})).filter(x=>x.answer!==undefined);
   const answers=state.answers||{};
+  const pick=(list)=>list.filter(q=>valuePresent(answers[q.questionId])).map(q=>answerRecord(q,answers[q.questionId]));
+  const core=pick(CORE);
+  const adaptive=pick(ADAPTIVE.filter(q=>(state.adaptiveQuestionIds||[]).includes(q.questionId)));
+  const eventTrace=pick(EVENT_TRACE);
+  const reflection=pick(REFLECTION);
+  const shortTermObservation=pick(SHORT_TERM_OBSERVATION);
   return {
-    schemaVersion:'LRA-STRUCTURE-PACKET-1.0',
+    schemaVersion:'LRA-STRUCTURE-PACKET-2.0',
     packetVersion:meta.packetVersion||null,
     questionDbVersion:meta.questionDbVersion||null,
     legacyCanonVersion:LEGACY_CANON_VERSION,
@@ -56,11 +100,9 @@ export function buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,
     observedAt:state.savedAt||new Date().toISOString(),
     answers,
     rawAnswers:answers,
-    core:pick(CORE),
-    adaptive:pick(ADAPTIVE.filter(q=>(state.adaptiveQuestionIds||[]).includes(q.questionId))),
-    eventTrace:pick(EVENT_TRACE),
-    reflection:pick(REFLECTION),
-    shortTermObservation:pick(SHORT_TERM_OBSERVATION),
+    answerExtras:structuredClone(state.answerExtras||{}),
+    answerRecords:[...core,...adaptive,...eventTrace,...reflection,...shortTermObservation],
+    core,adaptive,eventTrace,reflection,shortTermObservation,
     requiredAnalysis:[...LRA_CANON.analysis],
     evaluationElements:[...LRA_CANON.evaluation],
     hypothesisStates:[...LRA_CANON.hypothesisState],
@@ -68,6 +110,6 @@ export function buildAnalysisPacket(state,{CORE,ADAPTIVE,EVENT_TRACE,REFLECTION,
     interventionComparison:[...LRA_CANON.interventionCompare],
     outputOrder:[...LRA_CANON.outputOrder],
     legacyCompatibility:{canon:LEGACY_CANON,sheets:LEGACY_14_SHEETS,reports:LEGACY_REPORT_ASSETS},
-    constraints:{diagnosis:false,simpleScoring:false,singleCauseAssertion:false,aiFinalDecision:false,localFinalInference:false,unfrozenLegacyRulesMayNotBeInvented:true}
+    constraints:{diagnosis:false,simpleScoring:false,singleCauseAssertion:false,aiFinalDecision:false,localFinalInference:false,unfrozenLegacyRulesMayNotBeInvented:true,preserveResponseState:true,preserveHistoricalSemantics:true}
   };
 }
