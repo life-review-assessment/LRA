@@ -1,3 +1,4 @@
+import './payment-flow.js?v=20261013-paid-test1';
 import { sendLraSubmission } from './submission-transport.js?v=20261009-server1';
 
 function packetNow(){return window.LRA_RUNTIME?.getAnalysisPacket?.()||null;}
