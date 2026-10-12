@@ -2,6 +2,7 @@ const PAYMENT_API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-pay
 const STATE_KEY='lra.state.2.0';
 const USER_KEY='lra.user.1.0';
 const PENDING_KEY='lra.payment.pending.1.0';
+const START_KEY='lra.payment.start.1.0';
 const TEST_CODE_KEY='lra.payment.testCode.1.0';
 const PAID=new Set(['LIGHT','STANDARD','DEEP','CONTINUOUS']);
 const pageUrl=new URL(location.href);
@@ -11,10 +12,11 @@ const paymentReturn=pageUrl.searchParams.get('payment')==='complete';
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 function getToken(){return window.LRA_ACCOUNT_UI?.getToken?.()||'';}
 function getUserId(){return window.LRA_ACCOUNT?.profile?.userId||localStorage.getItem(USER_KEY)||'';}
-function readPending(){try{return JSON.parse(localStorage.getItem(PENDING_KEY)||'null')}catch{return null}}
 function writePending(v){try{v?localStorage.setItem(PENDING_KEY,JSON.stringify(v)):localStorage.removeItem(PENDING_KEY)}catch{}}
 function readTestCode(){try{return sessionStorage.getItem(TEST_CODE_KEY)||''}catch{return''}}
 function writeTestCode(v){try{v?sessionStorage.setItem(TEST_CODE_KEY,v):sessionStorage.removeItem(TEST_CODE_KEY)}catch{}}
+function writeStart(v){try{v?sessionStorage.setItem(START_KEY,v):sessionStorage.removeItem(START_KEY)}catch{}}
+function readStart(){try{return sessionStorage.getItem(START_KEY)||''}catch{return''}}
 
 async function ensureAccount(){
   const ui=window.LRA_ACCOUNT_UI;
@@ -72,6 +74,19 @@ function paidState(lraId,productCode){
   return{userId,lraId,analysisCount:1,planCode:productCode,outputId:null,stage:'INTRO',index:0,answers:{},answerExtras:{},adaptiveQuestionIds:[],eventTraceUsed:null,savedAt:new Date().toISOString(),status:'受付',analysisPacket:null,baseAnalysisPacket:null,analysis:null};
 }
 
+function resumePaidStart(){
+  const marker=readStart();if(!marker)return;
+  try{
+    const state=JSON.parse(localStorage.getItem(STATE_KEY)||'null');
+    if(state?.lraId===marker&&state?.stage==='INTRO'&&PAID.has(state?.planCode)){
+      writeStart('');
+      setTimeout(()=>window.LRA_RUNTIME?.resume?.(),0);
+      return;
+    }
+  }catch{}
+  writeStart('');
+}
+
 async function resolveReturn(){
   if(!paymentReturn)return;
   const sessionId=pageUrl.searchParams.get('session_id')||'';
@@ -84,7 +99,7 @@ async function resolveReturn(){
     await sleep(750);
   }
   if(result?.paid&&PAID.has(result.product_code)){
-    try{localStorage.setItem(STATE_KEY,JSON.stringify(paidState(result.lra_id,result.product_code)))}catch{mountStatus('端末に開始情報を保存できませんでした。',true);return}
+    try{localStorage.setItem(STATE_KEY,JSON.stringify(paidState(result.lra_id,result.product_code)));writeStart(result.lra_id)}catch{mountStatus('端末に開始情報を保存できませんでした。',true);return}
     writePending(null);
     const clean=`${location.origin}${location.pathname}`;
     location.replace(clean);
@@ -94,6 +109,7 @@ async function resolveReturn(){
   mountStatus('決済は完了していますが、LRAへの反映をまだ確認できません。画面を再読み込みすると再確認できます。',true);
 }
 
+resumePaidStart();
 if(testStart||paymentReturn){
   relabelTestButtons();
   const observer=new MutationObserver(relabelTestButtons);observer.observe(document.documentElement,{childList:true,subtree:true});
