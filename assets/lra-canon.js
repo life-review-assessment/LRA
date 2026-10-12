@@ -7,15 +7,15 @@ export const LRA_CANON=Object.freeze({
   roles:Object.freeze({web:'観測装置',inference:'ChatGPT＝外部推論装置',canon:'LRA正本＝判断基準',decision:'利用者＝最終意思決定者'}),
   flow:Object.freeze(['CORE SCAN','ADAPTIVE SCAN','EVENT TRACE','REFLECTION','STRUCTURE ANALYSIS','SHORT TERM OBSERVATION','RE-ANALYSIS']),
   questionTypes:Object.freeze(['FACT','EVENT','COMPARE','COUNTERFACTUAL','PROTECT']),
-  analysis:Object.freeze(['STRUCTURE NODE','CHAIN','LOOP','MULTIPLE HYPOTHESES','SUPPORTING EVIDENCE','COUNTEREVIDENCE','CONTRADICTIONS','EXCEPTIONS','TIMELINE','INTERACTIONS','CONFIDENCE','PERSONAL BASELINE','LEVERAGE POINT','INTERVENTION CANDIDATES','PRIORITY','SHORT TERM OBSERVATION','RE-ANALYSIS']),
+  analysis:Object.freeze(['STRUCTURE NODE','BOTTLENECK','CHAIN','LOOP','MULTIPLE HYPOTHESES','SUPPORTING EVIDENCE','COUNTEREVIDENCE','CONTRADICTIONS','RESPONSE SEMANTIC DRIFT','EXCEPTIONS','TIMELINE','INTERACTIONS','PROTECTED ITEMS','AVAILABLE RESOURCES','CONFIDENCE','PERSONAL BASELINE','LEVERAGE POINT','INTERVENTION CANDIDATES','PRIORITY','SHORT TERM OBSERVATION','RE-ANALYSIS']),
   evaluation:Object.freeze(['PROBLEM','IMPACT','FREQUENCY','PERSISTENCE','TREND','CONTROL','EXTERNAL','BUFFER','COST','PROTECTION RISK','LEVERAGE','CONFIDENCE']),
   confidence:Object.freeze(['HIGH','MEDIUM','LOW','INSUFFICIENT']),
   hypothesisState:Object.freeze(['NEW','SUPPORTED','WEAKENED','REJECTED','UNRESOLVED']),
   reanalysisState:Object.freeze(['SUPPORTED','WEAKENED','REJECTED','UNRESOLVED','PERSONAL BASELINE']),
   interventionCompare:Object.freeze(['EXPECTED IMPACT','LEVERAGE','FEASIBILITY','CONFIDENCE','REVERSIBILITY','COST','PROTECTION RISK']),
-  outputOrder:Object.freeze(['現在の生活構造','最大ボトルネック','CHAIN/LOOP','主要仮説','根拠','反証・不確実性','機能している部分','保護対象','資源','レバレッジポイント','介入候補','最優先候補','確信度','必要時追加観測']),
+  outputOrder:Object.freeze(['現在の構造','最重要ボトルネック','主要CHAIN','主要LOOP','主要仮説','矛盾情報','回答意味ずれ','保護対象','利用可能な資源','レバレッジポイント','介入候補','最優先介入','専門家接続','追加観測','構造翻訳']),
   legacy:LEGACY_CANON,legacyCanonVersion:LEGACY_CANON_VERSION,legacySheetSchema:LEGACY_14_SHEETS,legacySheetSchemaVersion:LEGACY_SHEET_SCHEMA_VERSION,legacyReports:LEGACY_REPORT_ASSETS,
-  rules:Object.freeze({factFirst:true,singleAnswerCannotProveCause:true,correlationIsNotCausation:true,unknownIsValidResult:true,multipleHypothesesRequired:true,counterevidenceRequired:true,doNothingIsValidOption:true,chain:'根拠ある一方向関係がある場合のみCHAINとして扱う。',loop:'循環維持の証拠がある場合のみLOOPとして扱う。',oldFiveAxes:'行動／判断／環境／感情／回復は内部整理軸。主結果を単純点数化しない。',legacyAssets:'旧40問・旧25問・TYPE8+T99・TAG22・STATE/WARNING役割・PT01〜06名称・旧構造翻訳・旧スコア/比較・専門家優先度・旧14シート全列・旧5部・P1〜P4を履歴/内部互換資産として保持し、未凍結条件は推測実装しない。',aiFinalDecision:false,localFinalInference:false})
+  rules:Object.freeze({factFirst:true,singleAnswerCannotProveCause:true,correlationIsNotCausation:true,unknownIsValidResult:true,multipleHypothesesRequired:true,counterevidenceRequired:true,preserveSemanticDrift:true,protectBeforeIntervention:true,evidenceCalibratedLanguage:true,concreteStructuralTranslation:true,doNothingIsValidOption:true,chain:'根拠ある一方向関係がある場合のみCHAINとして扱う。',loop:'循環維持の証拠がある場合のみLOOPとして扱う。',oldFiveAxes:'行動／判断／環境／感情／回復は内部整理軸。主結果を単純点数化しない。',legacyAssets:'旧40問・旧25問・TYPE8+T99・TAG22・STATE/WARNING役割・PT01〜06名称・旧構造翻訳・旧スコア/比較・専門家優先度・旧14シート全列・旧5部・P1〜P4を履歴/内部互換資産として保持し、未凍結条件は推測実装しない。',aiFinalDecision:false,localFinalInference:false})
 });
 
 function valuePresent(v){return !(v===undefined||v===null||v===''||(Array.isArray(v)&&v.length===0));}
