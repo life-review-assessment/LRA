@@ -1,6 +1,6 @@
-const CACHE='lra-static-v1.5.41';
+const CACHE='lra-static-v1.5.42';
 const STATIC=[
-  './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg',
+  './','./index.html','./manifest.json','./lra-icon.svg','./lra-brand-mark.svg','./lra-brand-mark-fixed.svg',
   './terms.html','./privacy.html','./legal.html',
   './assets/style.css','./assets/questions.js','./assets/short-term.js',
   './assets/lra-canon.js','./assets/legacy-canon.js','./assets/legacy-sheet-schema.js','./assets/legacy-report-assets.js','./assets/inference-contract.js',
@@ -16,5 +16,5 @@ self.addEventListener('fetch',event=>{
     event.respondWith(fetch(event.request,{cache:'no-store'}).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));return r;}).catch(()=>caches.match(event.request).then(r=>r||caches.match('./index.html'))));
     return;
   }
-  event.respondWith(fetch(event.request).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));}return r;}).catch(()=>caches.match(event.request)));
+  event.respondWith(fetch(event.request,{cache:'no-store'}).then(r=>{if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(event.request,copy));}return r;}).catch(()=>caches.match(event.request)));
 });
