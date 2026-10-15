@@ -1,5 +1,5 @@
 (()=>{
-  const FIX_ID='lra-mobile-display-fix-20261015';
+  const FIX_ID='lra-mobile-display-fix-20261015-v2';
 
   function applyDisplayFix(){
     document.documentElement.style.webkitTextSizeAdjust='100%';
@@ -11,9 +11,11 @@
       style.textContent=`
 @media(max-width:760px){
   .lra-intro-thesis{
-    font-size:clamp(29px,7.4vw,32px)!important;
+    font-size:28px!important;
     line-height:1.42!important;
     letter-spacing:-.035em!important;
+    word-break:keep-all!important;
+    overflow-wrap:normal!important;
   }
 }`;
       document.head.appendChild(style);
@@ -33,6 +35,6 @@
   applyDisplayFix();
 
   if('serviceWorker' in navigator){
-    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261015-display1',{updateViaCache:'none'}).catch(()=>{}));
+    window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js?v=20261015-display2',{updateViaCache:'none'}).catch(()=>{}));
   }
 })();
