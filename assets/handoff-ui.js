@@ -1,3 +1,6 @@
+import './payment-flow.js?v=20261013-paid-test2';
+import './option-flow.js?v=20261014-option-test3';
+import './option-history.js?v=20261014-option-history2';
 import { sendLraSubmission } from './submission-transport.js?v=20261009-server1';
 
 function packetNow(){return window.LRA_RUNTIME?.getAnalysisPacket?.()||null;}
