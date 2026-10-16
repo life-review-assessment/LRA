@@ -1,10 +1,10 @@
 (()=>{
   const USER_API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-api';
   const EMAIL_API='https://holpzxxeebfvkvixjuhu.supabase.co/functions/v1/lra-user-email-api';
-  const ACCOUNT_KEY='lra.account.1.0',USER_KEY='lra.user.1.0',TOKEN_KEY='lra.user.session.token.1.0',HISTORY_KEY='lra.history.1.3',CLIENT_PREFIX='lra.clientKey.';
+  const ACCOUNT_KEY='lra.account.1.0',USER_KEY='lra.user.1.0',TOKEN_KEY='lra.user.session.token.1.0',HISTORY_KEY='lra.history.1.3',CLIENT_PREFIX='lra.clientKey.',NEEDS_EMAIL_KEY='lra.account.needsEmail.1.0';
   const lget=k=>{try{return localStorage.getItem(k)}catch{return null}},lset=(k,v)=>{try{v===null?localStorage.removeItem(k):localStorage.setItem(k,v);return true}catch{return false}};
   const readAccount=()=>{try{return JSON.parse(lget(ACCOUNT_KEY)||'null')}catch{return null}};
-  const writeAccount=p=>lset(ACCOUNT_KEY,JSON.stringify(p))&&lset(USER_KEY,p.userId);
+  const writeAccount=p=>{const ok=lset(ACCOUNT_KEY,JSON.stringify(p))&&lset(USER_KEY,p.userId);if(ok)lset(NEEDS_EMAIL_KEY,null);return ok};
   const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
   let account=readAccount(),token=lget(TOKEN_KEY)||'',gate=null,authenticated=false;
   const waiters=[];
@@ -12,8 +12,8 @@
 
   const style=document.createElement('style');
   style.textContent=`
-  .lra-gate{position:fixed;inset:0;z-index:99999;background:#f4f2ed;display:grid;place-items:center;padding:24px;overflow:auto}
-  .lra-gate-card{width:min(520px,100%);border-top:1px solid #11110f;padding-top:28px}
+  .lra-gate{position:fixed;inset:0;z-index:99999;background:#f4f2ed;overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;padding:max(24px,env(safe-area-inset-top)) 20px max(32px,env(safe-area-inset-bottom))}
+  .lra-gate-card{width:min(520px,100%);margin:0 auto;border-top:1px solid #11110f;padding-top:28px;padding-bottom:24px;box-sizing:border-box}
   .lra-gate-kicker{font:600 10px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;letter-spacing:.22em;color:#777268;margin:0 0 18px}
   .lra-gate h2{font:400 clamp(34px,8vw,56px)/1.15 Georgia,"Yu Mincho",serif;letter-spacing:-.04em;margin:0 0 18px}
   .lra-gate p{font-size:13px;line-height:1.9;color:#5c574f}
@@ -30,14 +30,15 @@
   .lra-code{font:700 19px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.05em;word-break:break-all}
   .cover-login{position:absolute;top:max(20px,env(safe-area-inset-top));right:20px;z-index:4;border:1px solid rgba(17,17,15,.35);background:rgba(244,242,237,.88);color:#11110f;padding:10px 14px;font-size:11px;letter-spacing:.08em}
   #userDashboardId{display:none!important}
+  @media(max-width:600px){.lra-gate{padding-left:18px;padding-right:18px}.lra-gate-card{padding-top:22px}.lra-gate h2{font-size:clamp(34px,10vw,44px)}.lra-gate-actions{display:grid;grid-template-columns:1fr}.lra-gate button{width:100%}}
   `;
   document.head.appendChild(style);
 
   function profileFrom(p){return{userId:p.user_id||p.userId,displayName:p.display_name||p.displayName||'利用者',loginId:p.login_id||p.loginId||'',serverBacked:true}}
   function closeGate(resolveValue){if(gate){gate.remove();gate=null}if(resolveValue!==undefined){while(waiters.length)waiters.shift()(resolveValue)}}
   function fail(t){const el=gate?.querySelector('#lraGateError');if(el)el.textContent=t||''}
-  function busy(on){gate?.querySelectorAll('button').forEach(b=>b.disabled=on)}
-  function mountShell(html){if(gate)gate.remove();gate=document.createElement('div');gate.className='lra-gate';gate.innerHTML=`<div class="lra-gate-card">${html}<div id="lraGateError" class="lra-gate-error"></div></div>`;document.body.appendChild(gate)}
+  function busy(on){gate?.querySelectorAll('button,input').forEach(el=>el.disabled=on)}
+  function mountShell(html){if(gate)gate.remove();gate=document.createElement('div');gate.className='lra-gate';gate.innerHTML=`<div class="lra-gate-card">${html}<div id="lraGateError" class="lra-gate-error"></div></div>`;document.body.appendChild(gate);gate.scrollTop=0}
   async function api(url,body,t=''){const h={'content-type':'application/json'};if(t)h.authorization=`Bearer ${t}`;const r=await fetch(url,{method:'POST',headers:h,body:JSON.stringify(body),cache:'no-store'}),j=await r.json().catch(()=>({}));if(!r.ok||j.ok!==true){const e=new Error(j.error||'通信エラー');e.status=r.status;e.code=j.error||'';throw e}return j}
   function migrationProofs(userId){let rows=[];try{rows=JSON.parse(lget(HISTORY_KEY)||'[]')}catch{}const proofs=[];for(const r of rows){if(r?.userId!==userId||!r?.lraId||!r?.outputId)continue;const key=lget(`${CLIENT_PREFIX}${r.lraId}`);if(/^CLK-[A-F0-9]{32}$/.test(String(key||'')))proofs.push({lra_id:r.lraId,output_id:r.outputId,client_key:key})}return proofs.slice(0,50)}
   function finish(p,newToken,{close=true}={}){authenticated=true;account=profileFrom(p);token=newToken||token;writeAccount(account);if(token)lset(TOKEN_KEY,token);window.LRA_ACCOUNT={authenticated:true,profile:account};window.dispatchEvent(new CustomEvent('lra:account-authenticated',{detail:{profile:account}}));if(close)closeGate(account)}
@@ -74,7 +75,16 @@
     gate.querySelector('#lraVerifyRecover')?.addEventListener('click',async()=>{const code=(gate.querySelector('#lraGateCode')?.value||'').trim(),pin=gate.querySelector('#lraGatePin')?.value||'';busy(true);try{const j=await api(EMAIL_API,{action:'verify_recover',challenge_id:challenge,code,pin});credentialScreen(j,'ログイン情報を復旧しました。');}catch(err){fail(err.message)}finally{busy(false)}});
   }
 
+  function mountNeedsEmail(){
+    mountShell(`<p class="lra-gate-kicker">ACCOUNT UPDATE</p><h2>メール確認が必要です。</h2><p>この端末に残っている旧ログイン情報は現在の登録情報と一致しません。PINを繰り返し入力せず、メール確認から登録・復旧してください。</p><div class="lra-gate-actions"><button id="lraLegacyRegister">メールで登録・引継ぎ →</button><button class="alt" id="lraLegacyRecover">登録済みメールから復旧</button><button class="alt" id="lraLegacyOther">別のユーザーIDでログイン</button><button class="alt" id="lraGateCancel">戻る</button></div>`);
+    gate.querySelector('#lraLegacyRegister')?.addEventListener('click',()=>mountRegister());
+    gate.querySelector('#lraLegacyRecover')?.addEventListener('click',()=>mountRecover());
+    gate.querySelector('#lraLegacyOther')?.addEventListener('click',()=>mountLogin({forceId:true}));
+    gate.querySelector('#lraGateCancel')?.addEventListener('click',()=>closeGate(null));
+  }
+
   function mountLogin({forceId=false}={}){
+    if(lget(NEEDS_EMAIL_KEY)==='1'&&!forceId){mountNeedsEmail();return}
     const knownId=account?.userId||lget(USER_KEY)||'',knownName=account?.displayName||'利用者',useKnown=!!knownId&&!forceId;
     if(useKnown){
       mountShell(`<p class="lra-gate-kicker">LRA LOGIN</p><h2>おかえりなさい。</h2><p>このブラウザに保存済みのアカウントです。PINだけ入力してください。</p><div class="lra-known-account"><strong>${esc(knownName)}</strong><span>保存済みLRAアカウント</span></div><label>PIN</label><input id="lraGatePin" type="password" inputmode="numeric" autocomplete="current-password" maxlength="12" placeholder="設定したPIN"><div class="lra-gate-actions"><button id="lraGateLogin">ログイン →</button><button class="alt" id="lraGateSwitch">別のアカウントでログイン</button><button class="alt" id="lraGateRecover">ユーザーID / PINを忘れた</button><button class="alt" id="lraGateMigrate">メールで登録・復旧</button><button class="alt" id="lraGateCancel">戻る</button></div>`);
@@ -86,11 +96,11 @@
     gate.querySelector('#lraGateRecover')?.addEventListener('click',()=>mountRecover());
     gate.querySelector('#lraGateMigrate')?.addEventListener('click',()=>mountRegister());
     gate.querySelector('#lraGateRegister')?.addEventListener('click',()=>mountRegister());
-    gate.querySelector('#lraGateLogin')?.addEventListener('click',async()=>{const ident=(useKnown?knownId:(gate.querySelector('#lraGateLoginId')?.value||'')).trim().toUpperCase(),pin=gate.querySelector('#lraGatePin')?.value||'';if(!ident)return fail('ユーザーIDを確認してください。');if(!/^\d{4,12}$/.test(pin))return fail('PINを確認してください。');busy(true);try{const j=await api(USER_API,{action:'login',login_id:ident,pin});finish(j.profile,j.token);}catch(err){if(err.code==='ACCOUNT_NOT_FOUND'){fail('この端末の旧アカウント情報は現在の登録情報と一致しません。メールで登録・復旧してください。');}else fail(err.message);}finally{busy(false)}});
+    gate.querySelector('#lraGateLogin')?.addEventListener('click',async()=>{const ident=(useKnown?knownId:(gate.querySelector('#lraGateLoginId')?.value||'')).trim().toUpperCase(),pin=gate.querySelector('#lraGatePin')?.value||'';if(!ident)return fail('ユーザーIDを確認してください。');if(!/^\d{4,12}$/.test(pin))return fail('PINを確認してください。');busy(true);try{const j=await api(USER_API,{action:'login',login_id:ident,pin});finish(j.profile,j.token);}catch(err){if(useKnown&&err.code==='ACCOUNT_NOT_FOUND'){lset(NEEDS_EMAIL_KEY,'1');mountNeedsEmail();return}if(err.code==='ACCOUNT_NOT_FOUND')fail('ユーザーIDまたは登録状態を確認してください。');else fail(err.message);}finally{busy(false)}});
     gate.querySelector('#lraGatePin')?.addEventListener('keydown',e=>{if(e.key==='Enter')gate.querySelector('#lraGateLogin')?.click()});
   }
 
-  function ensureAccount(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);if(account||lget(USER_KEY))mountLogin();else mountRegister()})}
+  function ensureAccount(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);if(lget(NEEDS_EMAIL_KEY)==='1')mountNeedsEmail();else if(account||lget(USER_KEY))mountLogin();else mountRegister()})}
   function openLogin(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);mountLogin()})}
   function openRegistration(){if(authenticated)return Promise.resolve(account);return new Promise(resolve=>{waiters.push(resolve);mountRegister()})}
   function openAccountInfo(){if(!authenticated){openLogin();return}mountShell(`<p class="lra-gate-kicker">ACCOUNT</p><h2>ログイン済みです。</h2><p>ユーザーIDは通常画面には表示しません。別の端末で必要になり、忘れた場合は登録メールから復旧できます。</p><div class="lra-gate-actions"><button id="lraGateDone">閉じる</button></div>`);gate.querySelector('#lraGateDone')?.addEventListener('click',()=>closeGate())}
