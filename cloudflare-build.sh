@@ -2,6 +2,5 @@
 set -eu
 rm -rf dist
 mkdir -p dist
-cp index.html legal.html privacy.html terms.html manifest.json sw.js lra-icon.svg lra-brand-mark.svg ops-pin.html ops-options.html _headers _redirects dist/
-cp -R assets dist/assets
+cp index.html 404.html sw.js _headers _redirects dist/
 cp -R sorla dist/sorla
